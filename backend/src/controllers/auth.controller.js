@@ -5,6 +5,10 @@ import jwt from "jsonwebtoken";
 export const registerUser = async (req, res) => {
     const { username, email, password, role, profilePicture } = req.body;
 
+    if(!username || !email || !password || !role ||username==='' || email==='' || password==='' || role==='') {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
         return res.status(400).json({ message: "Email already in use" });
@@ -38,17 +42,28 @@ export const registerUser = async (req, res) => {
 }
 
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password ,role} = req.body;
 
+    if(!email || !password || !role || email==='' || password==='' || role==='') {
+            return res.status(400).json({ message: "All fields are required" });
+        }
     const user = await User.findOne({ email });
     if (!user) {
         return res.status(400).json({ message: "Invalid email or password" });
     }
-
+    
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid email or password" });
     }
+    // check if user role matches the requested role
+    if(role === 'farmer' &&  user.role !== role) {
+        return res.status(400).json({ message: "user is not a farmer" });
+    }
+    else if(role === 'buyer' &&  user.role !== role) {
+        return res.status(400).json({ message: "user is not a buyer" });
+    }
+
 
     const token = jwt.sign({
          userId: user._id, 
