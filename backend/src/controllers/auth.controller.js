@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res) => {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, profilePicture } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -15,7 +15,9 @@ export const registerUser = async (req, res) => {
         username, 
         email, 
         password: hashedPassword,
-         role });
+         role,
+         ...(profilePicture && { profilePicture })
+         });
     await user.save();
 
     const token = jwt.sign({
@@ -29,7 +31,8 @@ export const registerUser = async (req, res) => {
             id: user._id,
             username: user.username,
             email: user.email,
-            role: user.role
+            role: user.role,
+            profilePicture: user.profilePicture
         }
     });
 }
@@ -58,7 +61,14 @@ export const loginUser = async (req, res) => {
             id: user._id,
             username: user.username,
             email: user.email,
-            role: user.role
+            role: user.role,
+            profilePicture: user.profilePicture
         }
     });
+}
+
+
+export const logoutUser = (req, res) => {
+    res.clearCookie("token");
+    res.status(200).json({ message: "User logged out successfully" });
 }
