@@ -1,15 +1,11 @@
-import express from "express";
+import app from "./src/app.js";
 import dotenv from "dotenv";
+import {connectDB}  from "./src/db/db.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
-const app = express();
-
-app.get("/",(req,res)=>{
-    res.send("Hello from Harvest Hub");
-})
-
+connectDB();
 app.listen(PORT,()=>{
     console.log(`Server is listen on Port ${PORT}`);
     
