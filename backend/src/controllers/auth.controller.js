@@ -93,13 +93,6 @@ export const loginUser = async (req, res) => {
     });
 }
 
-
-export const logoutUser = (req, res) => {
-    res.clearCookie("token");
-    res.status(200).json({ message: "User logged out successfully" });
-}
-
-
 export const throughGoogle = async (req, res) => {
     const { email, name, profilePicture, role } = req.body; // we have to send role from frontend as google doesn't provide role information and we need it for our app functionality
 

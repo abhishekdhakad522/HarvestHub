@@ -1,6 +1,11 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
+export const logoutUser = (req, res) => {
+    res.clearCookie("token");
+    res.status(200).json({ message: "User logged out successfully" });
+}
+
 export const updateProfile = async (req, res) => {
     const { username, email, password, profilePicture } = req.body;
     const userId = req.user.userId; // From JWT token (set by middleware)
@@ -65,7 +70,7 @@ export const getUserProfile = async (req, res) => {
     const userId = req.user.userId; // From JWT token
 
     try {
-        const user = await User.findById(userId).select("-password");
+        const user = await User.findById(userId).select("-password"); // exclude password
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -89,5 +94,63 @@ export const deleteUserAccount = async (req, res) => {
         res.status(200).json({ message: "Account deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting account", error: error.message });
+    }
+};
+
+export const getAllUsers = async (req, res) => {
+    try {
+        // Check if user is a buyer
+        if (req.user.role !== 'buyer') {
+            return res.status(403).json({ message: "Access denied. Only buyers can view all users." });
+        }
+
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        // Sorting (newest or oldest first)
+        const sortOrder = req.query.sort === 'oldest' ? 1 : -1;
+        
+        // Filter by role (optional - show only farmers or all)
+        const roleFilter = req.query.role ? { role: req.query.role } : {};
+
+        // Fetch users with pagination and sorting
+        const users = await User.find(roleFilter)
+            .select("-password")
+            .sort({ createdAt: sortOrder })
+            .skip(skip)
+            .limit(limit);
+        
+        // Get total count for pagination info
+        const totalUsers = await User.countDocuments(roleFilter);
+        
+        // Get farmers count
+        const totalFarmers = await User.countDocuments({ role: 'farmer' });
+        
+        // Calculate users from last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const recentUsers = await User.countDocuments({
+            ...roleFilter,
+            createdAt: { $gte: sevenDaysAgo }
+        });
+        
+        res.status(200).json({
+            message: "Users fetched successfully",
+            users,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalUsers / limit),
+                totalUsers,
+                usersPerPage: limit
+            },
+            stats: {
+                totalFarmers,
+                recentUsers
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching users", error: error.message });
     }
 };
