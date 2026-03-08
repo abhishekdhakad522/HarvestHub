@@ -133,7 +133,7 @@ export const getAllUsers = async (req, res) => {
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const recentUsers = await User.countDocuments({
             ...roleFilter,
-            createdAt: { $gte: sevenDaysAgo }
+            createdAt: { $gte: sevenDaysAgo } // count greater than or equal to 7 days ago
         });
         
         res.status(200).json({
