@@ -55,17 +55,7 @@ const productSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     }],
-    organic: { // to indicate if the product is organic or not
-        type: Boolean,
-        default: false
-    },
-    harvestDate: { // to track the date when the product was harvested
-        type: Date
-    },
-    minimumOrder: { 
-        type: Number,
-        min: 0
-    }
+   
 }, {
     timestamps: true
 });
