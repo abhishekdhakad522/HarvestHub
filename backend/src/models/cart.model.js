@@ -41,9 +41,6 @@ const cartSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster queries
-cartSchema.index({ user: 1 });
-
 // Method to calculate totals
 cartSchema.methods.calculateTotals = function() {
     this.totalItems = this.items.reduce((sum, item) => sum + item.quantity, 0);

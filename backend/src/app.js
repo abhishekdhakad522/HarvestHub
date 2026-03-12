@@ -5,6 +5,7 @@ import userRoutes from './routes/user.routes.js';
 import postRoutes from './routes/post.routes.js';
 import productRoutes from './routes/product.routes.js';
 import cartRoutes from './routes/cart.routes.js';
+import commentRoutes from './routes/comment.routes.js';
     
 const app = express();
 
@@ -15,9 +16,10 @@ app.use('/api/user', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/comments', commentRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Hello from Harvest Hub');
-});
+// app.get('/', (req, res) => {
+//   res.send('Hello from Harvest Hub');
+// });
 
 export default app;
