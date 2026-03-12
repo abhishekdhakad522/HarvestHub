@@ -72,26 +72,6 @@ export const getCommentsByPost = async (req, res) => {
     }
 };
 
-export const getCommentById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const comment = await Comment.findById(id)
-            .populate('author', 'username profilePicture')
-            .populate('post', 'title slug');
-
-        if (!comment) {
-            return res.status(404).json({ message: "Comment not found" });
-        }
-
-        res.status(200).json({
-            message: "Comment fetched successfully",
-            comment
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching comment", error: error.message });
-    }
-};
 
 export const updateComment = async (req, res) => {
     const { id } = req.params;
@@ -153,37 +133,6 @@ export const deleteComment = async (req, res) => {
     }
 };
 
-export const getMyComments = async (req, res) => {
-    const userId = req.user.userId;
-
-    try {
-        // Pagination
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const skip = (page - 1) * limit;
-
-        const comments = await Comment.find({ author: userId })
-            .populate('post', 'title slug')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-
-        const totalComments = await Comment.countDocuments({ author: userId });
-
-        res.status(200).json({
-            message: "Comments fetched successfully",
-            comments,
-            pagination: {
-                currentPage: page,
-                totalPages: Math.ceil(totalComments / limit),
-                totalComments,
-                commentsPerPage: limit
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching comments", error: error.message });
-    }
-};
 
 export const toggleLike = async (req, res) => {
     const { id } = req.params;
@@ -201,7 +150,7 @@ export const toggleLike = async (req, res) => {
 
         if (likeIndex > -1) {
             // Unlike the comment
-            comment.likes.splice(likeIndex, 1);
+            comment.likes.splice(likeIndex, 1); // remove like
             await comment.save();
             return res.status(200).json({
                 message: "Comment unliked successfully",
