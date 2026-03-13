@@ -21,4 +21,6 @@ router.put('/update/:id', verifyToken, updateProduct);
 router.delete('/delete/:id', verifyToken, deleteProduct);
 router.get('/my/products', verifyToken, getMyProducts);
 
+// Public single product route
+router.get('/:id', getProductById);
 export default router;

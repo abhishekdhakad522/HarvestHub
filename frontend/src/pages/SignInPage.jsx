@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../lib/auth.js";
 
 function SignInPage() {
@@ -29,7 +29,6 @@ function SignInPage() {
     try {
       const response = await loginUser(formData);
 
-      localStorage.setItem("harvesthubUser", JSON.stringify(response.user));
       window.dispatchEvent(new Event("harvesthub:authchange"));
       setStatus({ type: "success", message: response.message });
       navigate("/");
@@ -47,7 +46,9 @@ function SignInPage() {
     <section className="auth-layout">
       <div className="auth-copy">
         <p className="eyebrow">Welcome back</p>
-        <h1 className="auth-title">Sign in to manage your HarvestHub account.</h1>
+        <h1 className="auth-title">
+          Sign in to manage your HarvestHub account.
+        </h1>
         <p className="auth-text">
           Access your listings, orders, and buyer conversations from one place.
         </p>
@@ -82,7 +83,12 @@ function SignInPage() {
 
           <label className="form-field">
             <span>Account type</span>
-            <select name="role" value={formData.role} onChange={handleChange} required>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+            >
               <option value="farmer">Farmer</option>
               <option value="buyer">Buyer</option>
             </select>
@@ -97,13 +103,11 @@ function SignInPage() {
           </button>
 
           {status.message ? (
-            <p className={`form-status form-status-${status.type}`}>{status.message}</p>
+            <p className={`form-status form-status-${status.type}`}>
+              {status.message}
+            </p>
           ) : null}
         </form>
-
-        <p className="auth-switch">
-          Need an account? <Link to="/signup">Create one here</Link>
-        </p>
       </div>
     </section>
   );

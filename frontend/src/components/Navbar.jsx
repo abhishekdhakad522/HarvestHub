@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { fetchCurrentUser, logoutUser } from "../lib/auth.js";
 
-function getStoredUser() {
-  try {
-    const raw = localStorage.getItem("harvesthubUser");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+const DEFAULT_AVATAR = "/default-avatar.svg";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState(getStoredUser);
+  const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -21,20 +15,24 @@ function Navbar() {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Sync user state when localStorage changes (same tab via custom event, or other tabs via storage event)
+  // Sync user state from backend using JWT cookie
   useEffect(() => {
-    const sync = () => setUser(getStoredUser());
-    window.addEventListener("storage", sync);
+    const sync = async () => {
+      const currentUser = await fetchCurrentUser();
+      setUser(currentUser);
+    };
+
+    sync();
     window.addEventListener("harvesthub:authchange", sync);
+
     return () => {
-      window.removeEventListener("storage", sync);
       window.removeEventListener("harvesthub:authchange", sync);
     };
   }, []);
 
-  const handleSignOut = () => {
-    localStorage.removeItem("harvesthubUser");
-    window.dispatchEvent(new Event("harvesthub:authchange"));
+  const handleSignOut = async () => {
+    await logoutUser().catch(() => {});
+    setUser(null);
     navigate("/");
   };
 
@@ -111,7 +109,17 @@ function Navbar() {
         <div className="nav-actions">
           {user ? (
             <>
-              <span className="nav-user-greeting">Hi, {user.username}</span>
+              <Link className="nav-profile-pill" to="/profile" aria-label="Open profile">
+                <img
+                  className="nav-profile-avatar"
+                  src={user.profilePicture || DEFAULT_AVATAR}
+                  alt={`${user.username} profile`}
+                  onError={(event) => {
+                    event.currentTarget.src = DEFAULT_AVATAR;
+                  }}
+                />
+                <span className="nav-profile-name">{user.username}</span>
+              </Link>
               <button
                 type="button"
                 className="action-button nav-signout"

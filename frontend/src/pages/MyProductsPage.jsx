@@ -1,72 +1,53 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchCurrentUser } from "../lib/auth.js";
-import { getProducts } from "../lib/products.js";
+import { getMyProducts } from "../lib/products.js";
 
 const DEFAULT_PRODUCT_IMAGE = "/default-product.svg";
 
-function ShopPage() {
+function MyProductsPage() {
   const [products, setProducts] = useState([]);
-  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const syncUser = async () => {
-      const currentUser = await fetchCurrentUser();
-      setUser(currentUser);
-    };
-
-    syncUser();
-    window.addEventListener("harvesthub:authchange", syncUser);
-
-    return () => {
-      window.removeEventListener("harvesthub:authchange", syncUser);
-    };
-  }, []);
-
-  useEffect(() => {
-    const loadProducts = async () => {
+    const loadMyProducts = async () => {
       setIsLoading(true);
       setErrorMessage("");
 
       try {
-        const response = await getProducts();
+        const response = await getMyProducts();
         setProducts(Array.isArray(response.products) ? response.products : []);
       } catch (error) {
-        setErrorMessage(error.message || "Unable to load products right now.");
+        setErrorMessage(error.message || "Unable to load your products right now.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadProducts();
+    loadMyProducts();
   }, []);
 
   return (
     <section className="shop-page">
-      {user?.role === "farmer" ? (
-        <div className="shop-top-bar">
-          <Link className="shop-add-product-button" to="/products/new">
-            + Add product
-          </Link>
-        </div>
-      ) : null}
-
-      <p className="eyebrow">Marketplace</p>
-      <h1>Shop</h1>
+      <p className="eyebrow">Farmer Inventory</p>
+      <h1>My products</h1>
       <p className="hero-copy">
-        Browse fresh produce, dairy, and pantry goods from local farmers.
+        Manage your listings and review all products you have added.
       </p>
 
-      {isLoading ? <p className="shop-status">Loading products...</p> : null}
+      {isLoading ? <p className="shop-status">Loading your products...</p> : null}
 
       {!isLoading && errorMessage ? (
         <p className="shop-status shop-status-error">{errorMessage}</p>
       ) : null}
 
       {!isLoading && !errorMessage && products.length === 0 ? (
-        <p className="shop-status">No products available yet.</p>
+        <div className="shop-status">
+          <p>No products added yet.</p>
+          <Link className="shop-add-product-button" to="/products/new">
+            + Add your first product
+          </Link>
+        </div>
       ) : null}
 
       {!isLoading && !errorMessage && products.length > 0 ? (
@@ -88,15 +69,12 @@ function ShopPage() {
                   }}
                 />
                 <div className="product-content">
-                  <p className="product-category">
-                    {product.category || "General"}
-                  </p>
+                  <p className="product-category">{product.category || "General"}</p>
                   <h2>{product.name}</h2>
                   <p className="product-description">{product.description}</p>
                   <p className="product-meta">
                     <span className="product-price">
-                      ₹{Number(product.price || 0).toFixed(2)} /{" "}
-                      {product.unit || "item"}
+                      ₹{Number(product.price || 0).toFixed(2)} / {product.unit || "item"}
                     </span>
                     <span className="product-quantity">Qty: {product.quantity ?? 0}</span>
                   </p>
@@ -110,4 +88,4 @@ function ShopPage() {
   );
 }
 
-export default ShopPage;
+export default MyProductsPage;

@@ -10,15 +10,6 @@ function HomePage() {
           HarvestHub gives growers, vendors, and customers one place to share
           inventory, discover fresh products, and keep food moving locally.
         </p>
-
-        <div className="hero-actions">
-          <Link className="action-button" to="/signup">
-            Create an account
-          </Link>
-          <Link className="secondary-button" to="/signin">
-            Already a member?
-          </Link>
-        </div>
       </div>
 
       <aside className="feature-card" aria-label="Platform highlights">

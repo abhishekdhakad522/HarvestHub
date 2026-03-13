@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Default food product image">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff6e9"/>
+      <stop offset="100%" stop-color="#f6e7cd"/>
+    </linearGradient>
+    <linearGradient id="crate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c78d4f"/>
+      <stop offset="100%" stop-color="#a96f36"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#bg)"/>
+
+  <ellipse cx="480" cy="460" rx="290" ry="46" fill="#dfc79f" opacity="0.65"/>
+
+  <rect x="220" y="250" width="520" height="180" rx="26" fill="url(#crate)"/>
+  <rect x="250" y="280" width="460" height="26" rx="13" fill="#d8a267" opacity="0.9"/>
+  <rect x="250" y="332" width="460" height="26" rx="13" fill="#d8a267" opacity="0.9"/>
+
+  <g>
+    <circle cx="330" cy="220" r="50" fill="#de3f34"/>
+    <path d="M324 168c16-16 35-20 52-9-11 10-15 22-12 36-16-5-29-14-40-27z" fill="#3b8c3f"/>
+    <circle cx="410" cy="208" r="44" fill="#f29a2e"/>
+    <path d="M402 156c15-14 30-16 44-8-9 10-12 21-9 33-14-4-25-12-35-25z" fill="#4e9a4d"/>
+    <ellipse cx="490" cy="214" rx="42" ry="36" fill="#f0d15a"/>
+    <path d="M484 174c12-13 28-16 42-9-8 9-11 19-8 30-13-3-24-10-34-21z" fill="#5b9d49"/>
+    <circle cx="566" cy="216" r="46" fill="#e2573a"/>
+    <path d="M560 164c15-15 32-18 48-8-10 10-14 21-10 35-15-5-27-13-38-27z" fill="#418f45"/>
+    <ellipse cx="640" cy="214" rx="40" ry="34" fill="#8fbe4d"/>
+    <path d="M634 175c11-12 25-16 38-10-8 9-11 18-8 29-11-3-21-9-30-19z" fill="#3f7f36"/>
+  </g>
+
+  <g fill="#fff5df" opacity="0.95">
+    <circle cx="170" cy="96" r="10"/>
+    <circle cx="196" cy="78" r="7"/>
+    <circle cx="214" cy="102" r="8"/>
+    <circle cx="790" cy="94" r="10"/>
+    <circle cx="816" cy="76" r="7"/>
+    <circle cx="834" cy="101" r="8"/>
+  </g>
+</svg>

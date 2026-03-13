@@ -7,6 +7,9 @@ import SignUpPage from "./pages/SignUpPage.jsx";
 import ShopPage from "./pages/ShopPage.jsx";
 import NewsPage from "./pages/NewsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import AddProductPage from "./pages/AddProductPage.jsx";
+import MyProductsPage from "./pages/MyProductsPage.jsx";
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/products/new" element={<AddProductPage />} />
+          <Route path="/my-products" element={<MyProductsPage />} />
         </Routes>
       </main>
     </div>

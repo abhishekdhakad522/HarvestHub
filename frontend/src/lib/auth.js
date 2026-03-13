@@ -13,7 +13,26 @@ async function sendAuthRequest(path, payload) {
   const responseBody = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(responseBody.message || "Request failed. Please try again.");
+    throw new Error(
+      responseBody.message || "Request failed. Please try again.",
+    );
+  }
+
+  return responseBody;
+}
+
+async function sendAuthenticatedRequest(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include",
+    ...options,
+  });
+
+  const responseBody = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      responseBody.message || "Request failed. Please try again.",
+    );
   }
 
   return responseBody;
@@ -25,4 +44,16 @@ export function registerUser(payload) {
 
 export function loginUser(payload) {
   return sendAuthRequest("/api/auth/user/login", payload);
+}
+
+export async function fetchCurrentUser() {
+  try {
+    return await sendAuthenticatedRequest("/api/user/profile");
+  } catch {
+    return null;
+  }
+}
+
+export function logoutUser() {
+  return sendAuthenticatedRequest("/api/user/logout");
 }

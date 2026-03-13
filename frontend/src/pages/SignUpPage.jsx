@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { registerUser } from "../lib/auth.js";
 
 function SignUpPage() {
@@ -30,7 +30,6 @@ function SignUpPage() {
     try {
       const response = await registerUser(formData);
 
-      localStorage.setItem("harvesthubUser", JSON.stringify(response.user));
       window.dispatchEvent(new Event("harvesthub:authchange"));
       setStatus({ type: "success", message: response.message });
       navigate("/");
@@ -50,7 +49,8 @@ function SignUpPage() {
         <p className="eyebrow">Start selling locally</p>
         <h1 className="auth-title">Create your HarvestHub account.</h1>
         <p className="auth-text">
-          Join as a farmer, vendor, or buyer and start building direct local trade.
+          Join as a farmer, vendor, or buyer and start building direct local
+          trade.
         </p>
       </div>
 
@@ -96,7 +96,12 @@ function SignUpPage() {
 
           <label className="form-field">
             <span>Join as</span>
-            <select name="role" value={formData.role} onChange={handleChange} required>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+            >
               <option value="farmer">Farmer</option>
               <option value="buyer">Buyer</option>
             </select>
@@ -111,13 +116,11 @@ function SignUpPage() {
           </button>
 
           {status.message ? (
-            <p className={`form-status form-status-${status.type}`}>{status.message}</p>
+            <p className={`form-status form-status-${status.type}`}>
+              {status.message}
+            </p>
           ) : null}
         </form>
-
-        <p className="auth-switch">
-          Already registered? <Link to="/signin">Sign in instead</Link>
-        </p>
       </div>
     </section>
   );
