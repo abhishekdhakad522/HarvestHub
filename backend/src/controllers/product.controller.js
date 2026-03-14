@@ -1,13 +1,34 @@
 import Product from "../models/product.model.js";
+import cloudinary from "../config/cloudinary.js";
+
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'harvesthub/products', transformation: [{ quality: 'auto', fetch_format: 'auto' }] },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 export const createProduct = async (req, res) => {
-    const { name, description, category, price, unit, quantity, location, images, tags } = req.body;
+    const { name, description, category, price, unit, quantity, location, tags } = req.body;
     const seller = req.user.userId;
 
     try {
         // Validate required fields
         if (!name || !description || !category || !price || quantity === undefined) {
             return res.status(400).json({ message: "Name, description, category, price, and quantity are required" });
+        }
+
+        // Upload image to Cloudinary if a file is provided
+        let images = [];
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer);
+            images = [result.secure_url];
         }
 
         const newProduct = new Product({
@@ -19,7 +40,7 @@ export const createProduct = async (req, res) => {
             unit: unit || 'kg',
             quantity,
             location,
-            images: images || [],
+            images,
             tags: tags || []
         });
 
@@ -130,7 +151,7 @@ export const getProductById = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
     const { id } = req.params;
-    const { name, description, category, price, unit, quantity, location, images, tags, status } = req.body;
+    const { name, description, category, price, unit, quantity, location, tags, status } = req.body;
     const userId = req.user.userId;
 
     try {
@@ -145,6 +166,12 @@ export const updateProduct = async (req, res) => {
             return res.status(403).json({ message: "You can only update your own products" });
         }
 
+        // Upload new image to Cloudinary if a file is provided
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer);
+            product.images = [result.secure_url];
+        }
+
         // Update fields
         if (name) product.name = name;
         if (description) product.description = description;
@@ -153,7 +180,6 @@ export const updateProduct = async (req, res) => {
         if (unit) product.unit = unit;
         if (quantity !== undefined) product.quantity = quantity;
         if (location) product.location = location;
-        if (images) product.images = images;
         if (tags) product.tags = tags;
         if (status) product.status = status;
 

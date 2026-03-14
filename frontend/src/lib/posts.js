@@ -27,12 +27,9 @@ export function getPostById(postId) {
   return sendPostRequest(`/api/posts/${postId}`);
 }
 
-export function createPost(payload) {
+export function createPost(formData) {
   return sendPostRequest("/api/posts/create", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: formData, // FormData — browser sets Content-Type automatically
   });
 }

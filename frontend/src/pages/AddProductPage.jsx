@@ -8,6 +8,8 @@ function AddProductPage() {
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -17,7 +19,6 @@ function AddProductPage() {
     quantity: "",
     city: "",
     state: "",
-    imageUrl: "",
     tags: "",
   });
 
@@ -49,31 +50,36 @@ function AddProductPage() {
     }));
   };
 
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setStatus({ type: "idle", message: "" });
 
-    const payload = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      price: Number(formData.price),
-      unit: formData.unit,
-      quantity: Number(formData.quantity),
-      location: {
-        city: formData.city,
-        state: formData.state,
-      },
-      images: formData.imageUrl ? [formData.imageUrl] : [],
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-    };
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("description", formData.description);
+    data.append("category", formData.category);
+    data.append("price", formData.price);
+    data.append("unit", formData.unit);
+    data.append("quantity", formData.quantity);
+    data.append("location[city]", formData.city);
+    data.append("location[state]", formData.state);
+    formData.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .forEach((tag) => data.append("tags", tag));
+    if (imageFile) data.append("image", imageFile);
 
     try {
-      const response = await createProduct(payload);
+      const response = await createProduct(data);
       setStatus({
         type: "success",
         message: response.message || "Product created successfully.",
@@ -217,14 +223,20 @@ function AddProductPage() {
           </div>
 
           <label className="form-field">
-            <span>Image URL (optional)</span>
+            <span>Product image (optional)</span>
             <input
-              type="url"
-              name="imageUrl"
-              placeholder="https://example.com/product.jpg"
-              value={formData.imageUrl}
-              onChange={handleChange}
+              type="file"
+              name="image"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={handleImageChange}
             />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{ marginTop: "8px", maxHeight: "180px", borderRadius: "6px", objectFit: "cover" }}
+              />
+            )}
           </label>
 
           <label className="form-field">
