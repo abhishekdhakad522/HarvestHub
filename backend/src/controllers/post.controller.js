@@ -1,7 +1,21 @@
 import Post from "../models/post.model.js";
+import cloudinary from "../config/cloudinary.js";
+
+const uploadToCloudinary = (buffer, folder) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: `harvesthub/${folder}`, transformation: [{ quality: 'auto', fetch_format: 'auto' }] },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 export const createPost = async (req, res) => {
-    const { title, content, slug, category, imageUrl, tags } = req.body;
+    const { title, content, slug, category, tags } = req.body;
     const author = req.user.userId;
 
     try {
@@ -14,6 +28,13 @@ export const createPost = async (req, res) => {
         const existingSlug = await Post.findOne({ slug });
         if (existingSlug) {
             return res.status(400).json({ message: "Slug already exists. Please use a unique slug." });
+        }
+
+        // Upload image to Cloudinary if a file is provided
+        let imageUrl;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, 'posts');
+            imageUrl = result.secure_url;
         }
 
         const newPost = new Post({
@@ -128,7 +149,7 @@ export const getPostById = async (req, res) => {
 
 export const updatePost = async (req, res) => {
     const { id } = req.params;
-    const { title, content, slug, category, imageUrl, tags, isPublished } = req.body;
+    const { title, content, slug, category, tags, isPublished } = req.body;
     const userId = req.user.userId;
 
     try {
@@ -151,12 +172,17 @@ export const updatePost = async (req, res) => {
             }
         }
 
+        // Upload new image to Cloudinary if a file is provided
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, 'posts');
+            post.imageUrl = result.secure_url;
+        }
+
         // Update fields
         if (title) post.title = title;
         if (content) post.content = content;
         if (slug) post.slug = slug;
         if (category) post.category = category;
-        if (imageUrl) post.imageUrl = imageUrl;
         if (tags) post.tags = tags;
         if (typeof isPublished === 'boolean') post.isPublished = isPublished;
 
