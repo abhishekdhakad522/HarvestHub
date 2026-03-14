@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchCurrentUser } from "../lib/auth.js";
 import { createComment, getCommentsByPost } from "../lib/comments.js";
-import { getPostById } from "../lib/posts.js";
+import { getPostById, incrementPostViews } from "../lib/posts.js";
 
 const DEFAULT_POST_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80";
@@ -58,6 +58,17 @@ function ArticleDetailPage() {
 
         setPost(postResponse);
         setComments(Array.isArray(commentResponse?.comments) ? commentResponse.comments : []);
+
+        const viewKey = `harvesthub:viewed:${postId}`;
+        if (!sessionStorage.getItem(viewKey)) {
+          sessionStorage.setItem(viewKey, "true");
+          const viewResponse = await incrementPostViews(postId);
+          setPost((currentValue) =>
+            currentValue
+              ? { ...currentValue, views: viewResponse?.views ?? (currentValue.views || 0) + 1 }
+              : currentValue
+          );
+        }
       } catch (error) {
         setErrorMessage(error.message || "Unable to load this article right now.");
       } finally {

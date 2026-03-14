@@ -4,18 +4,20 @@ import {
     getAllPosts,
     getPostBySlug,
     getPostById,
+    incrementPostViews,
     updatePost,
     deletePost,
     getMyPosts
 } from '../controllers/post.controller.js';
-import { verifyToken } from '../middleware/auth.middleware.js';
+import { optionalVerifyToken, verifyToken } from '../middleware/auth.middleware.js';
 import upload from '../middleware/upload.middleware.js';
 
 const router = express.Router();
 
 // Public routes
 router.get('/', getAllPosts);
-router.get('/slug/:slug', getPostBySlug);
+router.get('/slug/:slug', optionalVerifyToken, getPostBySlug);
+router.post('/:id/view', optionalVerifyToken, incrementPostViews);
 router.get('/:id', getPostById);
 
 // Protected routes (require authentication)

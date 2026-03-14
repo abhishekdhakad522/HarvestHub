@@ -27,6 +27,12 @@ export function getPostById(postId) {
   return sendPostRequest(`/api/posts/${postId}`);
 }
 
+export function incrementPostViews(postId) {
+  return sendPostRequest(`/api/posts/${postId}/view`, {
+    method: "POST",
+  });
+}
+
 export function createPost(formData) {
   return sendPostRequest("/api/posts/create", {
     method: "POST",

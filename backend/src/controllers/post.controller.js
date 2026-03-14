@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import PostView from "../models/postView.model.js";
 import cloudinary from "../config/cloudinary.js";
 
 const uploadToCloudinary = (buffer, folder) => {
@@ -12,6 +13,32 @@ const uploadToCloudinary = (buffer, folder) => {
         );
         stream.end(buffer);
     });
+};
+
+const incrementViewIfNeeded = async (post, userId) => {
+    if (!post) {
+        return null;
+    }
+
+    if (!userId) {
+        post.views += 1;
+        await post.save();
+        return post;
+    }
+
+    const existingView = await PostView.findOne({ post: post._id, user: userId });
+    if (existingView) {
+        return post;
+    }
+
+    await PostView.create({
+        post: post._id,
+        user: userId
+    });
+
+    post.views += 1;
+    await post.save();
+    return post;
 };
 
 export const createPost = async (req, res) => {
@@ -113,16 +140,14 @@ export const getPostBySlug = async (req, res) => {
     const { slug } = req.params;
 
     try {
-        const post = await Post.findOne({ slug, isPublished: true })
+        let post = await Post.findOne({ slug, isPublished: true })
             .populate('author', 'username email profilePicture role');
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // Increment views
-        post.views += 1;
-        await post.save();
+        post = await incrementViewIfNeeded(post, req.user?.userId);
 
         res.status(200).json(post);
     } catch (error) {
@@ -144,6 +169,24 @@ export const getPostById = async (req, res) => {
         res.status(200).json(post);
     } catch (error) {
         res.status(500).json({ message: "Error fetching post", error: error.message });
+    }
+};
+
+export const incrementPostViews = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        let post = await Post.findById(id);
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        post = await incrementViewIfNeeded(post, req.user?.userId);
+
+        res.status(200).json({ views: post.views });
+    } catch (error) {
+        res.status(500).json({ message: "Error incrementing post views", error: error.message });
     }
 };
 
