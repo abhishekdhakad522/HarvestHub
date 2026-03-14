@@ -54,6 +54,16 @@ export async function fetchCurrentUser() {
   }
 }
 
+export function updateUserProfile(payload) {
+  return sendAuthenticatedRequest("/api/user/update", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
 export function logoutUser() {
   return sendAuthenticatedRequest("/api/user/logout");
 }

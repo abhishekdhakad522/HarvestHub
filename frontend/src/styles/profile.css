@@ -1,0 +1,102 @@
+.profile-layout {
+  margin-top: 56px;
+  padding: 32px 12px 0;
+  max-width: 860px;
+}
+
+.profile-card {
+  padding: 30px;
+  border: 1px solid rgba(23, 60, 44, 0.12);
+  border-radius: 30px;
+  background: rgba(252, 248, 240, 0.84);
+  box-shadow: 0 18px 40px rgba(59, 87, 56, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.profile-card h1 {
+  margin: 0;
+  color: #163728;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.profile-item {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(22, 55, 40, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.profile-item span {
+  color: #52704d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-item strong {
+  color: #163728;
+  font-size: 1.02rem;
+}
+
+.profile-status {
+  margin: 16px 0 0;
+  color: #4d5f53;
+  font-size: 1rem;
+}
+
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.profile-update-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.update-profile-button,
+.my-products-button,
+.my-posts-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1px solid #be6f1f;
+  background: linear-gradient(135deg, #d8842a 0%, #b55f15 100%);
+  color: #fff9ef;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  box-shadow: 0 14px 30px rgba(181, 95, 21, 0.28);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.update-profile-button:hover,
+.update-profile-button:focus-visible,
+.my-products-button:hover,
+.my-products-button:focus-visible,
+.my-posts-button:hover,
+.my-posts-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(181, 95, 21, 0.34);
+  filter: saturate(1.08);
+}

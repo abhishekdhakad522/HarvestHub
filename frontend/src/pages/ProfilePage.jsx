@@ -80,8 +80,14 @@ function ProfilePage() {
         </div>
 
         <div className="profile-actions">
+          <Link className="update-profile-button" to="/profile/update">
+            Update profile
+          </Link>
           <Link className="my-products-button" to="/my-products">
             My products
+          </Link>
+          <Link className="my-posts-button" to="/my-posts">
+            My posts
           </Link>
         </div>
       </div>
