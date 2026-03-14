@@ -1,0 +1,69 @@
+.app-shell {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.page-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: #52704d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero-copy {
+  max-width: 640px;
+  margin: 20px 0 0;
+  color: #4d5f53;
+  font-size: 1.05rem;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid rgba(22, 55, 40, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #163728;
+  font-size: 0.96rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  background: rgba(255, 255, 255, 0.78);
+  transform: translateY(-1px);
+}
+
+.simple-page {
+  margin-top: 56px;
+  padding: 48px 12px 0;
+  max-width: 720px;
+}
+
+.simple-page h1 {
+  margin: 0;
+  color: #163728;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 0.96;
+}

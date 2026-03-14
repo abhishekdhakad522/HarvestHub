@@ -69,6 +69,7 @@ function Navbar() {
           {[
             { label: "Home", to: "/", end: true },
             { label: "Shop", to: "/shop" },
+            { label: "Articles", to: "/articles" },
             { label: "News", to: "/news" },
             { label: "About", to: "/about" },
           ].map((item) => (

@@ -1,0 +1,256 @@
+.articles-page {
+  margin-top: 56px;
+  padding: 48px 12px 0;
+}
+
+.articles-page h1 {
+  margin: 0;
+  color: #163728;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.articles-top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.articles-copy {
+  max-width: 720px;
+}
+
+.articles-status {
+  margin-top: 20px;
+  color: #4d5f53;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.articles-status-error {
+  color: #8c3525;
+}
+
+.articles-grid {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.article-card {
+  overflow: hidden;
+  border: 1px solid rgba(23, 60, 44, 0.12);
+  border-radius: 24px;
+  background: rgba(252, 248, 240, 0.84);
+  box-shadow: 0 14px 30px rgba(59, 87, 56, 0.1);
+}
+
+.article-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.article-image {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  background: rgba(230, 239, 230, 0.9);
+}
+
+.article-content {
+  padding: 18px;
+}
+
+.article-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.article-category {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(28, 92, 64, 0.14);
+  color: #1b5a3d;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.article-date {
+  color: #607564;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.article-content h2 {
+  margin: 14px 0 0;
+  color: #163728;
+  font-size: 1.22rem;
+  line-height: 1.2;
+}
+
+.article-excerpt {
+  margin: 12px 0 0;
+  color: #4d5f53;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.article-footer {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #234433;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.article-author,
+.article-views {
+  color: #52704d;
+}
+
+.article-open-link {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  color: #1c5c40;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.article-detail-page {
+  margin-top: 56px;
+  padding: 48px 12px 0;
+  max-width: 900px;
+}
+
+.article-detail-header h1 {
+  margin: 12px 0 0;
+  color: #163728;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.02;
+}
+
+.article-detail-meta {
+  margin: 16px 0 0;
+  color: #52704d;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.article-detail-card {
+  margin-top: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(23, 60, 44, 0.12);
+  border-radius: 26px;
+  background: rgba(252, 248, 240, 0.84);
+  box-shadow: 0 16px 32px rgba(59, 87, 56, 0.1);
+}
+
+.article-detail-image {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  background: rgba(230, 239, 230, 0.9);
+}
+
+.article-detail-content {
+  padding: 24px;
+}
+
+.article-detail-text {
+  margin: 0;
+  color: #264433;
+  font-size: 1rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.article-comments-section {
+  margin-top: 26px;
+}
+
+.article-comments-section h2 {
+  margin: 0;
+  color: #163728;
+  font-size: 1.6rem;
+}
+
+.article-comment-form {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.article-comments-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.article-comment-item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(23, 60, 44, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.article-comment-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(22, 55, 40, 0.12);
+}
+
+.article-comment-meta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #52704d;
+  font-size: 0.85rem;
+}
+
+.article-comment-meta strong {
+  color: #163728;
+  font-size: 0.95rem;
+}
+
+.article-comment-content {
+  margin: 6px 0 0;
+  color: #264433;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.articles-empty-state {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  color: #4d5f53;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.articles-empty-state p {
+  margin: 0;
+}
