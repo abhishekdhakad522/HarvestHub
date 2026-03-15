@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { fetchCurrentUser } from "../lib/auth.js";
 import { createComment, getCommentsByPost, updateComment } from "../lib/comments.js";
-import { getPostById, incrementPostViews } from "../lib/posts.js";
+import { deletePost, getPostBySlug } from "../lib/posts.js";
 
 const DEFAULT_POST_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80";
@@ -21,7 +21,8 @@ function formatDate(value) {
 }
 
 function ArticleDetailPage() {
-  const { postId } = useParams();
+  const navigate = useNavigate();
+  const { slug } = useParams();
   const [user, setUser] = useState(null);
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -34,6 +35,8 @@ function ArticleDetailPage() {
   const [editingCommentText, setEditingCommentText] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editStatus, setEditStatus] = useState({ type: "idle", message: "" });
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -55,24 +58,11 @@ function ArticleDetailPage() {
       setErrorMessage("");
 
       try {
-        const [postResponse, commentResponse] = await Promise.all([
-          getPostById(postId),
-          getCommentsByPost(postId),
-        ]);
+        const postResponse = await getPostBySlug(slug);
+        const commentResponse = await getCommentsByPost(postResponse._id);
 
         setPost(postResponse);
         setComments(Array.isArray(commentResponse?.comments) ? commentResponse.comments : []);
-
-        const viewKey = `harvesthub:viewed:${postId}`;
-        if (!sessionStorage.getItem(viewKey)) {
-          sessionStorage.setItem(viewKey, "true");
-          const viewResponse = await incrementPostViews(postId);
-          setPost((currentValue) =>
-            currentValue
-              ? { ...currentValue, views: viewResponse?.views ?? (currentValue.views || 0) + 1 }
-              : currentValue
-          );
-        }
       } catch (error) {
         setErrorMessage(error.message || "Unable to load this article right now.");
       } finally {
@@ -80,10 +70,10 @@ function ArticleDetailPage() {
       }
     };
 
-    if (postId) {
+    if (slug) {
       loadArticle();
     }
-  }, [postId]);
+  }, [slug]);
 
   const handleCommentSubmit = async (event) => {
     event.preventDefault();
@@ -99,7 +89,7 @@ function ArticleDetailPage() {
 
     try {
       const response = await createComment({
-        postId,
+        postId: post?._id,
         content: commentText.trim(),
       });
 
@@ -165,6 +155,25 @@ function ArticleDetailPage() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!post?._id) {
+      return;
+    }
+
+    setIsDeletingPost(true);
+
+    try {
+      await deletePost(post._id);
+      navigate("/my-posts", {
+        replace: true,
+        state: { toastMessage: "Post deleted successfully." },
+      });
+    } catch (error) {
+      setErrorMessage(error.message || "Unable to delete this post right now.");
+      setIsDeletingPost(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <section className="articles-page">
@@ -204,6 +213,14 @@ function ArticleDetailPage() {
             <Link className="action-button" to={`/posts/edit/${post._id}`}>
               Edit post
             </Link>
+            <button
+              type="button"
+              className="article-delete-button"
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={isDeletingPost}
+            >
+              {isDeletingPost ? "Deleting..." : "Delete post"}
+            </button>
           </div>
         ) : null}
       </div>
@@ -339,6 +356,34 @@ function ArticleDetailPage() {
           </p>
         ) : null}
       </section>
+
+      {isDeleteModalOpen ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-post-title">
+          <div className="modal-card">
+            <h3 id="delete-post-title">Delete this post?</h3>
+            <p>This action cannot be undone.</p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeletingPost}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="article-delete-button"
+                onClick={handleDeletePost}
+                disabled={isDeletingPost}
+              >
+                {isDeletingPost ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

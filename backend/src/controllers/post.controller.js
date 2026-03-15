@@ -15,6 +15,40 @@ const uploadToCloudinary = (buffer, folder) => {
     });
 };
 
+const getPublicIdFromImageUrl = (imageUrl) => {
+    if (!imageUrl || !imageUrl.includes('res.cloudinary.com') || !imageUrl.includes('/upload/')) {
+        return null;
+    }
+
+    const uploadPart = imageUrl.split('/upload/')[1];
+    if (!uploadPart) {
+        return null;
+    }
+
+    const parts = uploadPart.split('/').filter(Boolean);
+    const versionIndex = parts.findIndex((part) => /^v\d+$/.test(part));
+    const publicPathParts = versionIndex >= 0 ? parts.slice(versionIndex + 1) : parts;
+
+    if (publicPathParts.length === 0) {
+        return null;
+    }
+
+    const lastPart = publicPathParts[publicPathParts.length - 1];
+    publicPathParts[publicPathParts.length - 1] = lastPart.replace(/\.[a-zA-Z0-9]+$/, '');
+
+    return publicPathParts.join('/');
+};
+
+const destroyCloudinaryAsset = async (publicId, imageUrl) => {
+    const resolvedPublicId = publicId || getPublicIdFromImageUrl(imageUrl);
+
+    if (!resolvedPublicId) {
+        return;
+    }
+
+    await cloudinary.uploader.destroy(resolvedPublicId);
+};
+
 const incrementViewIfNeeded = async (post, userId) => {
     if (!post) {
         return null;
@@ -59,9 +93,11 @@ export const createPost = async (req, res) => {
 
         // Upload image to Cloudinary if a file is provided
         let imageUrl;
+        let imagePublicId;
         if (req.file) {
             const result = await uploadToCloudinary(req.file.buffer, 'posts');
             imageUrl = result.secure_url;
+            imagePublicId = result.public_id;
         }
 
         const newPost = new Post({
@@ -71,6 +107,7 @@ export const createPost = async (req, res) => {
             slug,
             category: category || 'general',
             imageUrl,
+            imagePublicId,
             tags: tags || []
         });
 
@@ -217,8 +254,10 @@ export const updatePost = async (req, res) => {
 
         // Upload new image to Cloudinary if a file is provided
         if (req.file) {
+            await destroyCloudinaryAsset(post.imagePublicId, post.imageUrl);
             const result = await uploadToCloudinary(req.file.buffer, 'posts');
             post.imageUrl = result.secure_url;
+            post.imagePublicId = result.public_id;
         }
 
         // Update fields
@@ -256,7 +295,10 @@ export const deletePost = async (req, res) => {
             return res.status(403).json({ message: "You can only delete your own posts" });
         }
 
+        await destroyCloudinaryAsset(post.imagePublicId, post.imageUrl);
+
         await Post.findByIdAndDelete(id);
+        await PostView.deleteMany({ post: id });
 
         res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {

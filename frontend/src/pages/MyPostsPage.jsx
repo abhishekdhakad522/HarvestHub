@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getMyPosts } from "../lib/posts.js";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { deletePost, getMyPosts } from "../lib/posts.js";
 
 const DEFAULT_POST_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80";
@@ -18,9 +18,34 @@ function formatDate(value) {
 }
 
 function MyPostsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [deletingPostId, setDeletingPostId] = useState(null);
+  const [deleteTargetPostId, setDeleteTargetPostId] = useState(null);
+  const [toastMessage, setToastMessage] = useState(location.state?.toastMessage || "");
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setToastMessage("");
+    }, 2200);
+
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  useEffect(() => {
+    if (!location.state?.toastMessage) {
+      return;
+    }
+
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     const loadMyPosts = async () => {
@@ -40,6 +65,22 @@ function MyPostsPage() {
     loadMyPosts();
   }, []);
 
+  const handleDeletePost = async (postId) => {
+    setDeletingPostId(postId);
+    setErrorMessage("");
+
+    try {
+      await deletePost(postId);
+      setPosts((previousValue) => previousValue.filter((item) => item._id !== postId));
+      setToastMessage("Post deleted successfully.");
+      setDeleteTargetPostId(null);
+    } catch (error) {
+      setErrorMessage(error.message || "Unable to delete post right now.");
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
+
   return (
     <section className="articles-page">
       <div className="articles-top-bar">
@@ -57,6 +98,8 @@ function MyPostsPage() {
       </div>
 
       {isLoading ? <p className="articles-status">Loading your posts...</p> : null}
+
+      {toastMessage ? <p className="toast-success">{toastMessage}</p> : null}
 
       {!isLoading && errorMessage ? (
         <p className="articles-status articles-status-error">{errorMessage}</p>
@@ -96,6 +139,15 @@ function MyPostsPage() {
                   Edit this post
                 </Link>
 
+                <button
+                  type="button"
+                  className="article-card-delete-inline"
+                  onClick={() => setDeleteTargetPostId(post._id)}
+                  disabled={deletingPostId === post._id}
+                >
+                  {deletingPostId === post._id ? "Deleting..." : "Delete post"}
+                </button>
+
                 <p className="article-excerpt">{post.content}</p>
 
                 <div className="article-footer">
@@ -107,6 +159,33 @@ function MyPostsPage() {
               </div>
             </article>
           ))}
+        </div>
+      ) : null}
+
+      {deleteTargetPostId ? (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-post-title">
+          <div className="modal-card">
+            <h3 id="delete-post-title">Delete this post?</h3>
+            <p>This action is permanent and cannot be undone.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setDeleteTargetPostId(null)}
+                disabled={deletingPostId === deleteTargetPostId}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="article-delete-button"
+                onClick={() => handleDeletePost(deleteTargetPostId)}
+                disabled={deletingPostId === deleteTargetPostId}
+              >
+                {deletingPostId === deleteTargetPostId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </section>

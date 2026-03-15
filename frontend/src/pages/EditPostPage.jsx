@@ -99,7 +99,10 @@ function EditPostPage() {
       }
 
       await updatePost(postId, data);
-      navigate("/my-posts", { replace: true });
+      navigate("/my-posts", {
+        replace: true,
+        state: { toastMessage: "Post updated successfully." },
+      });
     } catch (error) {
       setStatus({
         type: "error",

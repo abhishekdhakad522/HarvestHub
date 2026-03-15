@@ -15,16 +15,20 @@ async function sendPostRequest(path, options = {}) {
   return responseBody;
 }
 
-export function getPublishedPosts({ page = 1, limit = 10 } = {}) {
+export function getPublishedPosts({ page = 1, limit = 18 } = {}) {
   return sendPostRequest(`/api/posts?page=${page}&limit=${limit}`);
 }
 
 export function getMyPosts() {
-  return sendPostRequest("/api/posts/my/posts?limit=10");
+  return sendPostRequest("/api/posts/my/posts?limit=18");
 }
 
 export function getPostById(postId) {
   return sendPostRequest(`/api/posts/${postId}`);
+}
+
+export function getPostBySlug(slug) {
+  return sendPostRequest(`/api/posts/slug/${slug}`);
 }
 
 export function incrementPostViews(postId) {
@@ -44,5 +48,11 @@ export function updatePost(postId, formData) {
   return sendPostRequest(`/api/posts/update/${postId}`, {
     method: "PUT",
     body: formData,
+  });
+}
+
+export function deletePost(postId) {
+  return sendPostRequest(`/api/posts/delete/${postId}`, {
+    method: "DELETE",
   });
 }

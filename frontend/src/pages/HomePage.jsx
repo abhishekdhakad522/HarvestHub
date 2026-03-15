@@ -96,7 +96,7 @@ function HomePage() {
                 <Link
                   key={post._id || post.slug}
                   className="home-item-card"
-                  to={`/articles/${post._id}`}
+                  to={`/articles/${post.slug || post._id}`}
                 >
                   <div className="home-item-media">
                     <img
@@ -189,7 +189,7 @@ function HomePage() {
                 <Link
                   key={post._id || post.slug}
                   className="home-item-card"
-                  to={`/articles/${post._id}`}
+                  to={`/articles/${post.slug || post._id}`}
                 >
                   <div className="home-item-media">
                     <img

@@ -54,7 +54,7 @@ function ArticlesPage() {
       setErrorMessage("");
 
       try {
-        const response = await getPublishedPosts({ page: currentPage, limit: 10 });
+        const response = await getPublishedPosts({ page: currentPage, limit: 18 });
         setPosts(Array.isArray(response?.posts) ? response.posts : []);
         setTotalPages(response?.pagination?.totalPages || 1);
       } catch (error) {
@@ -109,7 +109,7 @@ function ArticlesPage() {
           <div className="articles-grid">
             {posts.map((post) => (
               <article className="article-card" key={post._id || post.slug}>
-                <Link className="article-card-link" to={`/articles/${post._id || post.id}`}>
+                <Link className="article-card-link" to={`/articles/${post.slug || post._id || post.id}`}>
                   <img
                     className="article-image"
                     src={post.imageUrl || DEFAULT_POST_IMAGE}
