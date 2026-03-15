@@ -91,6 +91,11 @@ function MyPostsPage() {
                 </div>
 
                 <h2>{post.title}</h2>
+
+                <Link className="article-card-edit-inline action-button" to={`/posts/edit/${post._id}`}>
+                  Edit this post
+                </Link>
+
                 <p className="article-excerpt">{post.content}</p>
 
                 <div className="article-footer">

@@ -28,3 +28,13 @@ export function createComment(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function updateComment(commentId, payload) {
+  return sendCommentRequest(`/api/comments/update/${commentId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}

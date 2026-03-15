@@ -222,22 +222,32 @@ function AddProductPage() {
             </label>
           </div>
 
-          <label className="form-field">
-            <span>Product image (optional)</span>
-            <input
-              type="file"
-              name="image"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
-              onChange={handleImageChange}
-            />
+          <div className="form-field">
+            <span>Product image (JPEG, PNG, WEBP up to 5MB)</span>
+            <div className="file-upload-control">
+              <input
+                id="product-image"
+                className="file-upload-input"
+                type="file"
+                name="image"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageChange}
+              />
+              <label htmlFor="product-image" className="file-upload-button">
+                Choose image
+              </label>
+              <span className="file-upload-name">
+                {imageFile ? imageFile.name : "No file chosen"}
+              </span>
+            </div>
             {imagePreview && (
               <img
+                className="file-upload-preview"
                 src={imagePreview}
-                alt="Preview"
-                style={{ marginTop: "8px", maxHeight: "180px", borderRadius: "6px", objectFit: "cover" }}
+                alt="Product preview"
               />
             )}
-          </label>
+          </div>
 
           <label className="form-field">
             <span>Tags (optional, comma separated)</span>

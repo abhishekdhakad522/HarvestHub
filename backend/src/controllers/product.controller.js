@@ -31,6 +31,15 @@ export const createProduct = async (req, res) => {
             images = [result.secure_url];
         }
 
+        const normalizedLocation = location || {
+            city: req.body['location[city]'] || '',
+            state: req.body['location[state]'] || ''
+        };
+
+        const normalizedTags = Array.isArray(tags)
+            ? tags
+            : (typeof tags === 'string' && tags.trim() ? [tags.trim()] : []);
+
         const newProduct = new Product({
             seller,
             name,
@@ -39,9 +48,9 @@ export const createProduct = async (req, res) => {
             price,
             unit: unit || 'kg',
             quantity,
-            location,
+            location: normalizedLocation,
             images,
-            tags: tags || []
+            tags: normalizedTags
         });
 
         await newProduct.save();
@@ -179,8 +188,17 @@ export const updateProduct = async (req, res) => {
         if (price !== undefined) product.price = price;
         if (unit) product.unit = unit;
         if (quantity !== undefined) product.quantity = quantity;
-        if (location) product.location = location;
-        if (tags) product.tags = tags;
+        if (location || req.body['location[city]'] || req.body['location[state]']) {
+            product.location = location || {
+                city: req.body['location[city]'] || '',
+                state: req.body['location[state]'] || ''
+            };
+        }
+        if (tags) {
+            product.tags = Array.isArray(tags)
+                ? tags
+                : (typeof tags === 'string' && tags.trim() ? [tags.trim()] : []);
+        }
         if (status) product.status = status;
 
         await product.save();

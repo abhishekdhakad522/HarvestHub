@@ -15,12 +15,12 @@ async function sendPostRequest(path, options = {}) {
   return responseBody;
 }
 
-export function getPublishedPosts() {
-  return sendPostRequest("/api/posts?limit=24");
+export function getPublishedPosts({ page = 1, limit = 10 } = {}) {
+  return sendPostRequest(`/api/posts?page=${page}&limit=${limit}`);
 }
 
 export function getMyPosts() {
-  return sendPostRequest("/api/posts/my/posts?limit=24");
+  return sendPostRequest("/api/posts/my/posts?limit=10");
 }
 
 export function getPostById(postId) {
@@ -37,5 +37,12 @@ export function createPost(formData) {
   return sendPostRequest("/api/posts/create", {
     method: "POST",
     body: formData, // FormData — browser sets Content-Type automatically
+  });
+}
+
+export function updatePost(postId, formData) {
+  return sendPostRequest(`/api/posts/update/${postId}`, {
+    method: "PUT",
+    body: formData,
   });
 }

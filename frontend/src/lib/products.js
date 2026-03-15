@@ -12,10 +12,23 @@ async function sendProductRequest(path, { method = "GET", payload, formData } = 
       : {}),
   });
 
-  const responseBody = await response.json().catch(() => ({}));
+  const rawBody = await response.text();
+  let responseBody = {};
+
+  try {
+    responseBody = rawBody ? JSON.parse(rawBody) : {};
+  } catch {
+    responseBody = { raw: rawBody };
+  }
 
   if (!response.ok) {
-    throw new Error(responseBody.message || "Product request failed.");
+    throw new Error(
+      responseBody.message ||
+        responseBody.error ||
+        (typeof responseBody.raw === "string" && responseBody.raw.trim()
+          ? `Product request failed (${response.status}): ${responseBody.raw.slice(0, 140)}`
+          : `Product request failed (${response.status}).`),
+    );
   }
 
   return responseBody;

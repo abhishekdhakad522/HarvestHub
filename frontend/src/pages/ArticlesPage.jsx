@@ -31,6 +31,8 @@ function ArticlesPage() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -52,8 +54,9 @@ function ArticlesPage() {
       setErrorMessage("");
 
       try {
-        const response = await getPublishedPosts();
+        const response = await getPublishedPosts({ page: currentPage, limit: 10 });
         setPosts(Array.isArray(response?.posts) ? response.posts : []);
+        setTotalPages(response?.pagination?.totalPages || 1);
       } catch (error) {
         setErrorMessage(error.message || "Unable to load articles right now.");
       } finally {
@@ -62,7 +65,15 @@ function ArticlesPage() {
     };
 
     loadPosts();
-  }, []);
+  }, [currentPage]);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((previousValue) => Math.max(1, previousValue - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((previousValue) => Math.min(totalPages, previousValue + 1));
+  };
 
   return (
     <section className="articles-page">
@@ -94,42 +105,68 @@ function ArticlesPage() {
       ) : null}
 
       {!isLoading && !errorMessage && posts.length > 0 ? (
-        <div className="articles-grid">
-          {posts.map((post) => (
-            <article className="article-card" key={post._id || post.slug}>
-              <Link className="article-card-link" to={`/articles/${post._id || post.id}`}>
-                <img
-                  className="article-image"
-                  src={post.imageUrl || DEFAULT_POST_IMAGE}
-                  alt={post.title}
-                  onError={(event) => {
-                    event.currentTarget.src = DEFAULT_POST_IMAGE;
-                  }}
-                />
+        <>
+          <div className="articles-grid">
+            {posts.map((post) => (
+              <article className="article-card" key={post._id || post.slug}>
+                <Link className="article-card-link" to={`/articles/${post._id || post.id}`}>
+                  <img
+                    className="article-image"
+                    src={post.imageUrl || DEFAULT_POST_IMAGE}
+                    alt={post.title}
+                    onError={(event) => {
+                      event.currentTarget.src = DEFAULT_POST_IMAGE;
+                    }}
+                  />
 
-                <div className="article-content">
-                  <div className="article-meta-row">
-                    <span className="article-category">{post.category || "general"}</span>
-                    <span className="article-date">{formatDate(post.createdAt)}</span>
+                  <div className="article-content">
+                    <div className="article-meta-row">
+                      <span className="article-category">{post.category || "general"}</span>
+                      <span className="article-date">{formatDate(post.createdAt)}</span>
+                    </div>
+
+                    <h2>{post.title}</h2>
+
+                    <p className="article-excerpt">{buildExcerpt(post.content)}</p>
+
+                    <div className="article-footer">
+                      <span className="article-author">
+                        By {post.author?.username || "HarvestHub"}
+                      </span>
+                      <span className="article-views">{post.views || 0} views</span>
+                    </div>
+
+                    <span className="article-open-link">Open post</span>
                   </div>
+                </Link>
+              </article>
+            ))}
+          </div>
 
-                  <h2>{post.title}</h2>
+          <div className="articles-pagination">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
 
-                  <p className="article-excerpt">{buildExcerpt(post.content)}</p>
+            <span className="articles-page-indicator">
+              Page {currentPage} of {totalPages}
+            </span>
 
-                  <div className="article-footer">
-                    <span className="article-author">
-                      By {post.author?.username || "HarvestHub"}
-                    </span>
-                    <span className="article-views">{post.views || 0} views</span>
-                  </div>
-
-                  <span className="article-open-link">Open post</span>
-                </div>
-              </Link>
-            </article>
-          ))}
-        </div>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleNextPage}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </>
       ) : null}
     </section>
   );

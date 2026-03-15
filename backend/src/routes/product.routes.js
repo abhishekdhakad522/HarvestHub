@@ -14,7 +14,6 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getAllProducts);
-router.get('/:id', getProductById);
 
 // Protected routes (require authentication)
 router.post('/create', verifyToken, upload.single('image'), createProduct);

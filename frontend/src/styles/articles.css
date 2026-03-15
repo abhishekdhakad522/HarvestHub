@@ -131,6 +131,33 @@
   font-weight: 800;
 }
 
+.article-card-edit-inline {
+  margin-top: 10px;
+  width: 100%;
+  border: 0;
+  text-decoration: none;
+}
+
+.article-card-edit-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 55, 40, 0.14);
+  background: rgba(255, 255, 255, 0.62);
+  color: #163728;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.article-card-edit-link:hover,
+.article-card-edit-link:focus-visible {
+  background: rgba(255, 255, 255, 0.84);
+}
+
 .article-detail-page {
   margin-top: 56px;
   padding: 48px 12px 0;
@@ -149,6 +176,12 @@
   color: #52704d;
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.article-detail-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .article-detail-card {
@@ -183,6 +216,26 @@
   margin-top: 26px;
 }
 
+.articles-pagination {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.articles-page-indicator {
+  color: #355444;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.articles-pagination .secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .article-comments-section h2 {
   margin: 0;
   color: #163728;
@@ -193,6 +246,10 @@
   margin-top: 14px;
   display: grid;
   gap: 14px;
+}
+
+.article-comment-form .form-field textarea {
+  resize: none;
 }
 
 .article-comments-list {
@@ -239,6 +296,31 @@
   color: #264433;
   font-size: 0.95rem;
   line-height: 1.55;
+}
+
+.article-comment-edited {
+  margin: 6px 0 0;
+  color: #607564;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.article-comment-editor {
+  margin-top: 8px;
+  display: grid;
+  gap: 10px;
+}
+
+.article-comment-edit-textarea {
+  width: 100%;
+  resize: none;
+}
+
+.article-comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .articles-empty-state {

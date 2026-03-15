@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchCurrentUser } from "../lib/auth.js";
-import { createComment, getCommentsByPost } from "../lib/comments.js";
+import { createComment, getCommentsByPost, updateComment } from "../lib/comments.js";
 import { getPostById, incrementPostViews } from "../lib/posts.js";
 
 const DEFAULT_POST_IMAGE =
@@ -30,6 +30,10 @@ function ArticleDetailPage() {
   const [commentText, setCommentText] = useState("");
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [commentStatus, setCommentStatus] = useState({ type: "idle", message: "" });
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editStatus, setEditStatus] = useState({ type: "idle", message: "" });
 
   useEffect(() => {
     const loadUser = async () => {
@@ -89,6 +93,7 @@ function ArticleDetailPage() {
       return;
     }
 
+    setEditStatus({ type: "idle", message: "" });
     setIsPostingComment(true);
     setCommentStatus({ type: "idle", message: "" });
 
@@ -102,7 +107,7 @@ function ArticleDetailPage() {
         setComments((previousValue) => [...previousValue, response.comment]);
       }
       setCommentText("");
-      setCommentStatus({ type: "success", message: "Comment added successfully." });
+      setCommentStatus({ type: "idle", message: "" });
     } catch (error) {
       setCommentStatus({
         type: "error",
@@ -110,6 +115,53 @@ function ArticleDetailPage() {
       });
     } finally {
       setIsPostingComment(false);
+    }
+  };
+
+  const startEditingComment = (comment) => {
+    setCommentStatus({ type: "idle", message: "" });
+    setEditingCommentId(comment._id);
+    setEditingCommentText(comment.content || "");
+    setEditStatus({ type: "idle", message: "" });
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
+    setEditStatus({ type: "idle", message: "" });
+  };
+
+  const saveEditedComment = async (commentId) => {
+    const trimmedContent = editingCommentText.trim();
+
+    if (!trimmedContent) {
+      setEditStatus({ type: "error", message: "Comment cannot be empty." });
+      return;
+    }
+
+    setCommentStatus({ type: "idle", message: "" });
+    setIsSavingEdit(true);
+    setEditStatus({ type: "idle", message: "" });
+
+    try {
+      const response = await updateComment(commentId, { content: trimmedContent });
+      if (response?.comment) {
+        setComments((previousValue) =>
+          previousValue.map((item) =>
+            item._id === commentId ? response.comment : item
+          )
+        );
+      }
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      setEditStatus({ type: "idle", message: "" });
+    } catch (error) {
+      setEditStatus({
+        type: "error",
+        message: error.message || "Unable to update comment right now.",
+      });
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -140,11 +192,20 @@ function ArticleDetailPage() {
         <Link className="secondary-button" to="/articles">
           Back to Articles
         </Link>
+
         <p className="eyebrow">Article</p>
         <h1>{post.title}</h1>
         <p className="article-detail-meta">
           By {post.author?.username || "HarvestHub"} • {formatDate(post.createdAt)} • {post.views || 0} views
         </p>
+
+        {user?._id && post?.author?._id === user._id ? (
+          <div className="article-detail-actions">
+            <Link className="action-button" to={`/posts/edit/${post._id}`}>
+              Edit post
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       <article className="article-detail-card">
@@ -186,7 +247,7 @@ function ArticleDetailPage() {
               {isPostingComment ? "Posting..." : "Post comment"}
             </button>
 
-            {commentStatus.message ? (
+            {commentStatus.type === "error" && commentStatus.message ? (
               <p className={`form-status form-status-${commentStatus.type}`}>
                 {commentStatus.message}
               </p>
@@ -218,12 +279,65 @@ function ArticleDetailPage() {
                     <strong>{comment.author?.username || "User"}</strong>
                     <span>{formatDate(comment.createdAt)}</span>
                   </p>
-                  <p className="article-comment-content">{comment.content}</p>
+
+                  {editingCommentId === comment._id ? (
+                    <div className="article-comment-editor">
+                      <textarea
+                        value={editingCommentText}
+                        onChange={(event) => setEditingCommentText(event.target.value)}
+                        rows={3}
+                        className="article-comment-edit-textarea"
+                      />
+                      <div className="article-comment-actions">
+                        <button
+                          type="button"
+                          className="action-button"
+                          onClick={() => saveEditedComment(comment._id)}
+                          disabled={isSavingEdit}
+                        >
+                          {isSavingEdit ? "Saving..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={cancelEditingComment}
+                          disabled={isSavingEdit}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="article-comment-content">{comment.content}</p>
+                      {comment.isEdited ? (
+                        <p className="article-comment-edited">Edited</p>
+                      ) : null}
+
+                      {user?._id && comment.author?._id === user._id ? (
+                        <div className="article-comment-actions">
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => startEditingComment(comment)}
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
                 </div>
               </article>
             ))
           )}
         </div>
+
+        {editStatus.type === "error" && editStatus.message ? (
+          <p className={`form-status form-status-${editStatus.type}`}>
+            {editStatus.message}
+          </p>
+        ) : null}
       </section>
     </section>
   );

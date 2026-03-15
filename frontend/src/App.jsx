@@ -16,6 +16,7 @@ import MyProductsPage from "./pages/MyProductsPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import AddPostPage from "./pages/AddPostPage.jsx";
 import MyPostsPage from "./pages/MyPostsPage.jsx";
+import EditPostPage from "./pages/EditPostPage.jsx";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/products/new" element={<AddProductPage />} />
           <Route path="/my-products" element={<MyProductsPage />} />
           <Route path="/posts/new" element={<AddPostPage />} />
+          <Route path="/posts/edit/:postId" element={<EditPostPage />} />
           <Route path="/my-posts" element={<MyPostsPage />} />
           <Route path="/cart" element={<CartPage />} />
         </Routes>
