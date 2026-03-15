@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { fetchCurrentUser } from "../lib/auth.js";
-import { createComment, getCommentsByPost, updateComment } from "../lib/comments.js";
+import {
+  createComment,
+  deleteComment,
+  getCommentsByPost,
+  updateComment,
+} from "../lib/comments.js";
 import { deletePost, getPostBySlug } from "../lib/posts.js";
 
 const DEFAULT_POST_IMAGE =
@@ -34,6 +39,8 @@ function ArticleDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
+  const [deleteCommentTargetId, setDeleteCommentTargetId] = useState(null);
   const [editStatus, setEditStatus] = useState({ type: "idle", message: "" });
   const [isDeletingPost, setIsDeletingPost] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -152,6 +159,32 @@ function ArticleDetailPage() {
       });
     } finally {
       setIsSavingEdit(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    setCommentStatus({ type: "idle", message: "" });
+    setEditStatus({ type: "idle", message: "" });
+    setDeletingCommentId(commentId);
+
+    try {
+      await deleteComment(commentId);
+      setComments((previousValue) =>
+        previousValue.filter((item) => item._id !== commentId)
+      );
+      setDeleteCommentTargetId(null);
+
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditingCommentText("");
+      }
+    } catch (error) {
+      setEditStatus({
+        type: "error",
+        message: error.message || "Unable to delete comment right now.",
+      });
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -337,8 +370,17 @@ function ArticleDetailPage() {
                             type="button"
                             className="secondary-button"
                             onClick={() => startEditingComment(comment)}
+                            disabled={deletingCommentId === comment._id}
                           >
                             Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="article-delete-button"
+                            onClick={() => setDeleteCommentTargetId(comment._id)}
+                            disabled={deletingCommentId === comment._id}
+                          >
+                            {deletingCommentId === comment._id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       ) : null}
@@ -379,6 +421,39 @@ function ArticleDetailPage() {
                 disabled={isDeletingPost}
               >
                 {isDeletingPost ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteCommentTargetId ? (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-comment-title"
+        >
+          <div className="modal-card">
+            <h3 id="delete-comment-title">Delete this comment?</h3>
+            <p>This action cannot be undone.</p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setDeleteCommentTargetId(null)}
+                disabled={deletingCommentId === deleteCommentTargetId}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="article-delete-button"
+                onClick={() => handleDeleteComment(deleteCommentTargetId)}
+                disabled={deletingCommentId === deleteCommentTargetId}
+              >
+                {deletingCommentId === deleteCommentTargetId ? "Deleting..." : "Yes, delete"}
               </button>
             </div>
           </div>

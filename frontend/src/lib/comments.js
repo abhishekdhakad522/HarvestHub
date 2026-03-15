@@ -38,3 +38,9 @@ export function updateComment(commentId, payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function deleteComment(commentId) {
+  return sendCommentRequest(`/api/comments/delete/${commentId}`, {
+    method: "DELETE",
+  });
+}
