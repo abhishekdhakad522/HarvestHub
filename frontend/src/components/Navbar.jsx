@@ -85,7 +85,7 @@ function Navbar() {
             </NavLink>
           ))}
 
-          {!user && (
+          {/* {!user && (
             <>
               <NavLink
                 to="/signin"
@@ -104,8 +104,8 @@ function Navbar() {
                 Sign up
               </NavLink>
             </>
-          )}
-        </div>
+            )}*/}
+         </div> 
 
         <div className="nav-actions">
           {user ? (
@@ -132,10 +132,10 @@ function Navbar() {
           ) : (
             <>
               <Link className="action-link" to="/signin">
-                Account access
+                Login
               </Link>
               <Link className="action-button" to="/signup">
-                Join HarvestHub
+                Sign Up
               </Link>
             </>
           )}

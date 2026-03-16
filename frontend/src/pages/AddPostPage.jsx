@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BackButton from "../components/BackButton.jsx";
 import { fetchCurrentUser } from "../lib/auth.js";
 import { createPost } from "../lib/posts.js";
 
@@ -102,10 +103,12 @@ function AddPostPage() {
   return (
     <section className="auth-layout">
       <div className="auth-copy">
+        <BackButton fallbackPath="/my-posts" />
         <p className="eyebrow">Story publishing</p>
         <h1 className="auth-title">Share a new article with the community.</h1>
         <p className="auth-text">
-          Publish farming tips, updates, market observations, and stories from your work.
+          Publish farming tips, updates, market observations, and stories from
+          your work.
         </p>
       </div>
 
@@ -199,7 +202,9 @@ function AddPostPage() {
           </button>
 
           {status.message ? (
-            <p className={`form-status form-status-${status.type}`}>{status.message}</p>
+            <p className={`form-status form-status-${status.type}`}>
+              {status.message}
+            </p>
           ) : null}
         </form>
       </div>

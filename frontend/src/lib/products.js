@@ -34,8 +34,16 @@ async function sendProductRequest(path, { method = "GET", payload, formData } = 
   return responseBody;
 }
 
-export function getProducts() {
-  return sendProductRequest("/api/products?limit=50");
+export function getProducts({ page = 1, limit = 9 } = {}) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  return sendProductRequest(`/api/products?${query.toString()}`);
+}
+
+export function getProductById(productId) {
+  return sendProductRequest(`/api/products/${productId}`);
 }
 
 export function getMyProducts() {
@@ -45,6 +53,13 @@ export function getMyProducts() {
 export function createProduct(formData) {
   return sendProductRequest("/api/products/create", {
     method: "POST",
+    formData,
+  });
+}
+
+export function updateProduct(productId, formData) {
+  return sendProductRequest(`/api/products/update/${productId}`, {
+    method: "PUT",
     formData,
   });
 }

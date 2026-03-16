@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import BackButton from "../components/BackButton.jsx";
 import { fetchCurrentUser } from "../lib/auth.js";
 import { getPostById, updatePost } from "../lib/posts.js";
 
@@ -126,6 +127,7 @@ function EditPostPage() {
   return (
     <section className="auth-layout">
       <div className="auth-copy">
+        <BackButton fallbackPath="/my-posts" />
         <p className="eyebrow">Story publishing</p>
         <h1 className="auth-title">Edit your article.</h1>
         <p className="auth-text">
@@ -193,7 +195,11 @@ function EditPostPage() {
               </span>
             </div>
             {imagePreview ? (
-              <img className="file-upload-preview" src={imagePreview} alt="Post preview" />
+              <img
+                className="file-upload-preview"
+                src={imagePreview}
+                alt="Post preview"
+              />
             ) : null}
           </div>
 
@@ -216,7 +222,9 @@ function EditPostPage() {
           </button>
 
           {status.message ? (
-            <p className={`form-status form-status-${status.type}`}>{status.message}</p>
+            <p className={`form-status form-status-${status.type}`}>
+              {status.message}
+            </p>
           ) : null}
         </form>
       </div>

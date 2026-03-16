@@ -30,6 +30,13 @@ export function addToCart(payload) {
   });
 }
 
+export function updateCartItem(payload) {
+  return sendCartRequest("/api/cart/update", {
+    method: "PUT",
+    payload,
+  });
+}
+
 export function removeFromCart(productId) {
   return sendCartRequest(`/api/cart/remove/${productId}`, {
     method: "DELETE",

@@ -223,7 +223,7 @@
   padding: 0 20px;
   border: 1px solid rgba(22, 55, 40, 0.14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(188, 171, 171, 0.58);
   color: #163728;
   font-size: 0.96rem;
   font-weight: 700;
@@ -236,7 +236,7 @@
 
 .secondary-button:hover,
 .secondary-button:focus-visible {
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(197, 173, 173, 0.78);
   transform: translateY(-1px);
 }
 

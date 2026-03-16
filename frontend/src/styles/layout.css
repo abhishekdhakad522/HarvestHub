@@ -55,6 +55,11 @@
   transform: translateY(-1px);
 }
 
+.back-nav-button {
+  width: fit-content;
+  margin-bottom: 14px;
+}
+
 .simple-page {
   margin-top: 56px;
   padding: 48px 12px 0;

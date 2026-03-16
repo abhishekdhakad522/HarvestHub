@@ -53,6 +53,7 @@ export const addToCart = async (req, res) => {
             }
             
             cart.items[existingItemIndex].quantity = newQuantity;
+            cart.items[existingItemIndex].price = product.price;
         } else {
             // Add new item to cart
             cart.items.push({
@@ -67,7 +68,7 @@ export const addToCart = async (req, res) => {
         await cart.save();
 
         // Populate product details
-        await cart.populate('items.product', 'name price images category status');
+    await cart.populate('items.product', 'name price images category status quantity unit seller');
 
         res.status(200).json({
             message: "Item added to cart successfully",
@@ -149,13 +150,14 @@ export const updateCartItem = async (req, res) => {
             
             // Update quantity
             cart.items[itemIndex].quantity = quantity;
+            cart.items[itemIndex].price = product.price;
         }
 
         // Calculate totals
         cart.calculateTotals();
         await cart.save();
 
-        await cart.populate('items.product', 'name price images category status');
+        await cart.populate('items.product', 'name price images category status quantity unit seller');
 
         res.status(200).json({
             message: "Cart updated successfully",
@@ -187,7 +189,7 @@ export const removeFromCart = async (req, res) => {
         cart.calculateTotals();
         await cart.save();
 
-        await cart.populate('items.product', 'name price images category status');
+        await cart.populate('items.product', 'name price images category status quantity unit seller');
 
         res.status(200).json({
             message: "Item removed from cart successfully",

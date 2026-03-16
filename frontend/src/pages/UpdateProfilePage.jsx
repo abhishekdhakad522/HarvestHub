@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BackButton from "../components/BackButton.jsx";
 import { fetchCurrentUser, updateUserProfile } from "../lib/auth.js";
 
 function UpdateProfilePage() {
@@ -93,6 +94,7 @@ function UpdateProfilePage() {
   return (
     <section className="auth-layout update-profile-page">
       <div className="auth-copy update-profile-copy">
+        <BackButton fallbackPath="/profile" />
         <p className="eyebrow">Account settings</p>
         <h1 className="auth-title">Update your profile details.</h1>
         <p className="auth-text">

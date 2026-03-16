@@ -12,10 +12,14 @@ import AboutPage from "./pages/AboutPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import UpdateProfilePage from "./pages/UpdateProfilePage.jsx";
 import AddProductPage from "./pages/AddProductPage.jsx";
+import EditProductPage from "./pages/EditProductPage.jsx";
 import MyProductsPage from "./pages/MyProductsPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import AddPostPage from "./pages/AddPostPage.jsx";
 import MyPostsPage from "./pages/MyPostsPage.jsx";
+import MyOrdersPage from "./pages/MyOrdersPage.jsx";
+import OrderDetailPage from "./pages/OrderDetailPage.jsx";
+import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
 import EditPostPage from "./pages/EditPostPage.jsx";
 
 function App() {
@@ -38,10 +42,17 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/update" element={<UpdateProfilePage />} />
           <Route path="/products/new" element={<AddProductPage />} />
+          <Route
+            path="/products/edit/:productId"
+            element={<EditProductPage />}
+          />
           <Route path="/my-products" element={<MyProductsPage />} />
           <Route path="/posts/new" element={<AddPostPage />} />
           <Route path="/posts/edit/:postId" element={<EditPostPage />} />
           <Route path="/my-posts" element={<MyPostsPage />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
+          <Route path="/seller-orders" element={<SellerOrdersPage />} />
+          <Route path="/my-orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>

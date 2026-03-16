@@ -68,6 +68,8 @@
 }
 
 .update-profile-button,
+.my-orders-button,
+.seller-orders-button,
 .my-products-button,
 .my-posts-button {
   display: inline-flex;
@@ -92,6 +94,10 @@
 
 .update-profile-button:hover,
 .update-profile-button:focus-visible,
+.my-orders-button:hover,
+.my-orders-button:focus-visible,
+.seller-orders-button:hover,
+.seller-orders-button:focus-visible,
 .my-products-button:hover,
 .my-products-button:focus-visible,
 .my-posts-button:hover,
