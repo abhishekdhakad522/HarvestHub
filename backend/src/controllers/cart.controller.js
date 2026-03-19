@@ -5,8 +5,14 @@ import Product from "../models/product.model.js";
 export const addToCart = async (req, res) => {
     const { productId, quantity } = req.body;
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
+        // Only buyers can add to cart
+        if (userRole !== 'buyer') {
+            return res.status(403).json({ message: "Only buyers can add items to cart. Farmers cannot use the cart feature." });
+        }
+
         // Validate input
         if (!productId || !quantity) {
             return res.status(400).json({ message: "Product ID and quantity are required" });
@@ -82,8 +88,14 @@ export const addToCart = async (req, res) => {
 // Get user's cart
 export const getCart = async (req, res) => {
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
+        // Only buyers can access cart
+        if (userRole !== 'buyer') {
+            return res.status(403).json({ message: "Only buyers can access the cart feature." });
+        }
+
         let cart = await Cart.findOne({ user: userId })
             .populate('items.product', 'name price images category status unit seller');
 
@@ -111,8 +123,14 @@ export const getCart = async (req, res) => {
 export const updateCartItem = async (req, res) => {
     const { productId, quantity } = req.body;
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
+        // Only buyers can update cart
+        if (userRole !== 'buyer') {
+            return res.status(403).json({ message: "Only buyers can update the cart." });
+        }
+
         if (!productId || quantity === undefined) {
             return res.status(400).json({ message: "Product ID and quantity are required" });
         }
@@ -172,8 +190,14 @@ export const updateCartItem = async (req, res) => {
 export const removeFromCart = async (req, res) => {
     const { productId } = req.params;
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
+        // Only buyers can remove from cart
+        if (userRole !== 'buyer') {
+            return res.status(403).json({ message: "Only buyers can modify the cart." });
+        }
+
         const cart = await Cart.findOne({ user: userId });
         
         if (!cart) {
@@ -203,8 +227,14 @@ export const removeFromCart = async (req, res) => {
 // Clear entire cart
 export const clearCart = async (req, res) => {
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     try {
+        // Only buyers can clear cart
+        if (userRole !== 'buyer') {
+            return res.status(403).json({ message: "Only buyers can clear the cart." });
+        }
+
         const cart = await Cart.findOne({ user: userId });
         
         if (!cart) {

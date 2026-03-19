@@ -138,12 +138,14 @@ function ShopPage() {
     <section className="shop-page">
       {user ? (
         <div className="shop-top-bar">
-          <Link
-            className="secondary-button shop-my-orders-button"
-            to="/my-orders"
-          >
-            My orders
-          </Link>
+          {user?.role === "buyer" && (
+            <Link
+              className="secondary-button shop-my-orders-button"
+              to="/my-orders"
+            >
+              My orders
+            </Link>
+          )}
           {user?.role === "farmer" ? (
             <Link
               className="secondary-button shop-my-orders-button"
@@ -162,31 +164,33 @@ function ShopPage() {
 
       <p className="eyebrow">Marketplace</p>
       <h1>Shop</h1>
-      <div className="shop-cart-center">
-        <Link
-          className="shop-cart-logo-button shop-cart-logo-inline"
-          to="/cart"
-          aria-label="View cart"
-        >
-          <span
-            className="shop-cart-count"
-            aria-label={`${cartItemCount} items in cart`}
+      {user?.role === "buyer" && (
+        <div className="shop-cart-center">
+          <Link
+            className="shop-cart-logo-button shop-cart-logo-inline"
+            to="/cart"
+            aria-label="View cart"
           >
-            {cartItemCount}
-          </span>
-          <svg
-            viewBox="0 0 24 24"
-            role="img"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 7H7" />
-            <circle cx="10" cy="20" r="1.5" />
-            <circle cx="17" cy="20" r="1.5" />
-          </svg>
-          <span className="shop-cart-label">Cart</span>
-        </Link>
-      </div>
+            <span
+              className="shop-cart-count"
+              aria-label={`${cartItemCount} items in cart`}
+            >
+              {cartItemCount}
+            </span>
+            <svg
+              viewBox="0 0 24 24"
+              role="img"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 7H7" />
+              <circle cx="10" cy="20" r="1.5" />
+              <circle cx="17" cy="20" r="1.5" />
+            </svg>
+            <span className="shop-cart-label">Cart</span>
+          </Link>
+        </div>
+      )}
       <p className="hero-copy">
         Browse fresh produce, dairy, and pantry goods from local farmers.
       </p>
@@ -266,40 +270,44 @@ function ShopPage() {
                               </Link>
                             </div>
                           ) : null}
-                          <label className="product-quantity-selector">
-                            <span>Quantity</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max={Math.max(availableQuantity, 1)}
-                              value={selectedQuantities[productId] ?? 1}
-                              onChange={(event) =>
-                                handleQuantityChange(
-                                  productId,
-                                  event.target.value,
-                                  Math.max(availableQuantity, 1),
-                                )
-                              }
-                              disabled={availableQuantity < 1}
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="product-cart-button"
-                            onClick={() =>
-                              handleAddToCart(productId, availableQuantity)
-                            }
-                            disabled={
-                              activeCartProductId === productId ||
-                              availableQuantity < 1
-                            }
-                          >
-                            {activeCartProductId === productId
-                              ? "Adding..."
-                              : availableQuantity < 1
-                                ? "Out of stock"
-                                : "Add to cart"}
-                          </button>
+                          {user?.role === "buyer" && (
+                            <>
+                              <label className="product-quantity-selector">
+                                <span>Quantity</span>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max={Math.max(availableQuantity, 1)}
+                                  value={selectedQuantities[productId] ?? 1}
+                                  onChange={(event) =>
+                                    handleQuantityChange(
+                                      productId,
+                                      event.target.value,
+                                      Math.max(availableQuantity, 1),
+                                    )
+                                  }
+                                  disabled={availableQuantity < 1}
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                className="product-cart-button"
+                                onClick={() =>
+                                  handleAddToCart(productId, availableQuantity)
+                                }
+                                disabled={
+                                  activeCartProductId === productId ||
+                                  availableQuantity < 1
+                                }
+                              >
+                                {activeCartProductId === productId
+                                  ? "Adding..."
+                                  : availableQuantity < 1
+                                    ? "Out of stock"
+                                    : "Add to cart"}
+                              </button>
+                            </>
+                          )}
                         </>
                       ) : (
                         <Link

@@ -83,17 +83,21 @@ function ProfilePage() {
           <Link className="update-profile-button" to="/profile/update">
             Update profile
           </Link>
-          <Link className="my-orders-button" to="/my-orders">
-            My orders
-          </Link>
-          {user?.role === "farmer" ? (
-            <Link className="seller-orders-button" to="/seller-orders">
-              My orders sold
+          {user?.role !== "farmer" && (
+            <Link className="my-orders-button" to="/my-orders">
+              My orders
             </Link>
-          ) : null}
-          <Link className="my-products-button" to="/my-products">
-            My products
-          </Link>
+          )}
+          {user?.role === "farmer" && (
+            <>
+              <Link className="seller-orders-button" to="/seller-orders">
+                My orders sold
+              </Link>
+              <Link className="my-products-button" to="/my-products">
+                My products
+              </Link>
+            </>
+          )}
           <Link className="my-posts-button" to="/my-posts">
             My posts
           </Link>

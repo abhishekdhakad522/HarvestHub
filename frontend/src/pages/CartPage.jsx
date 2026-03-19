@@ -8,6 +8,7 @@ import {
   updateCartItem,
 } from "../lib/cart.js";
 import { createOrder } from "../lib/orders.js";
+import { fetchCurrentUser } from "../lib/auth.js";
 
 const DEFAULT_PRODUCT_IMAGE = "/default-product.svg";
 
@@ -25,6 +26,7 @@ function CartPage() {
     totalItems: 0,
     totalPrice: 0,
   });
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isClearing, setIsClearing] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -47,8 +49,12 @@ function CartPage() {
     setErrorMessage("");
 
     try {
-      const response = await getCart();
+      const [response, currentUser] = await Promise.all([
+        getCart(),
+        fetchCurrentUser(),
+      ]);
       setCart(mapCartState(response));
+      setUser(currentUser);
     } catch (error) {
       setErrorMessage(error.message || "Unable to load cart right now.");
     } finally {
@@ -280,12 +286,20 @@ function CartPage() {
 
           <div className="cart-order-panel">
             <h2>Place order</h2>
-            <p className="cart-order-copy">
-              Total payable: ₹{Number(cart.totalPrice).toFixed(2)} + shipping as
-              per order rules.
-            </p>
+            {user?.role === "farmer" ? (
+              <div className="cart-farmer-notice">
+                <p className="shop-status shop-status-error">
+                  Farmers cannot place orders. Only buyers can purchase products.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="cart-order-copy">
+                  Total payable: ₹{Number(cart.totalPrice).toFixed(2)} + shipping as
+                  per order rules.
+                </p>
 
-            <form className="cart-order-form" onSubmit={handlePlaceOrder}>
+                <form className="cart-order-form" onSubmit={handlePlaceOrder}>
               <div className="cart-order-grid">
                 <label className="form-field">
                   <span>Full name</span>
@@ -391,6 +405,8 @@ function CartPage() {
                 {isPlacingOrder ? "Placing order..." : "Place order"}
               </button>
             </form>
+              </>
+            )}
           </div>
         </>
       ) : null}
