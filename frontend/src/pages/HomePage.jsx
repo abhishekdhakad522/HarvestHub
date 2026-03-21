@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPublishedPosts } from "../lib/posts.js";
 import { getProducts } from "../lib/products.js";
+import { fetchFarmingNews } from "../lib/news.js";
 
 const FALLBACK_IMAGES = {
   article:
@@ -27,19 +28,26 @@ function HomePage() {
   useEffect(() => {
     const loadPreviews = async () => {
       try {
-        const [productsResponse, postsResponse] = await Promise.all([
-          getProducts(),
-          getPublishedPosts(),
-        ]);
+        const [productsResponse, postsResponse, newsResponse] =
+          await Promise.all([
+            getProducts(),
+            getPublishedPosts(),
+            fetchFarmingNews("farming", 3).catch(() => []),
+          ]);
 
         const products = Array.isArray(productsResponse?.products)
           ? productsResponse.products
           : [];
-        const posts = Array.isArray(postsResponse?.posts) ? postsResponse.posts : [];
+        const posts = Array.isArray(postsResponse?.posts)
+          ? postsResponse.posts
+          : [];
+        const news = Array.isArray(newsResponse) ? newsResponse : [];
 
         setPreviewProducts(products.slice(0, 3));
-        setPreviewArticles(posts.filter((p) => p.category !== "news").slice(0, 3));
-        setPreviewNews(posts.filter((p) => p.category === "news").slice(0, 3));
+        setPreviewArticles(posts.slice(0, 3));
+        setPreviewNews(
+          news.filter((n) => n.title && n.title !== "[Removed]").slice(0, 3),
+        );
       } catch {
         setPreviewProducts([]);
         setPreviewArticles([]);
@@ -55,7 +63,9 @@ function HomePage() {
       <section className="hero-panel" aria-label="Introductory content">
         <div className="hero-content">
           <p className="eyebrow">Seasonal produce marketplace</p>
-          <h1>Build a direct line between local farms and everyday kitchens.</h1>
+          <h1>
+            Build a direct line between local farms and everyday kitchens.
+          </h1>
           <p className="hero-copy">
             HarvestHub gives growers, vendors, and customers one place to share
             inventory, discover fresh products, and keep food moving locally.
@@ -81,7 +91,9 @@ function HomePage() {
               <h2>
                 Articles
                 {previewArticles.length > 0 && (
-                  <span className="home-section-count">{previewArticles.length}+ stories</span>
+                  <span className="home-section-count">
+                    {previewArticles.length}+ stories
+                  </span>
                 )}
               </h2>
             </div>
@@ -107,14 +119,17 @@ function HomePage() {
                   </div>
                   <div className="home-item-body">
                     <p className="home-item-meta">
-                      {post.author?.username || "Author"}&nbsp;·&nbsp;{timeAgo(post.createdAt)}
+                      {post.author?.username || "Author"}&nbsp;·&nbsp;
+                      {timeAgo(post.createdAt)}
                     </p>
                     <h3 className="home-item-title">{post.title}</h3>
                   </div>
                 </Link>
               ))
             ) : (
-              <p className="home-items-empty">Fresh articles will appear here shortly.</p>
+              <p className="home-items-empty">
+                Fresh articles will appear here shortly.
+              </p>
             )}
           </div>
         </section>
@@ -127,7 +142,9 @@ function HomePage() {
               <h2>
                 Products
                 {previewProducts.length > 0 && (
-                  <span className="home-section-count">{previewProducts.length}+ items</span>
+                  <span className="home-section-count">
+                    {previewProducts.length}+ items
+                  </span>
                 )}
               </h2>
             </div>
@@ -155,13 +172,17 @@ function HomePage() {
                     </span>
                   </div>
                   <div className="home-item-body">
-                    <p className="home-item-meta">{product.category || "Product"}</p>
+                    <p className="home-item-meta">
+                      {product.category || "Product"}
+                    </p>
                     <h3 className="home-item-title">{product.name}</h3>
                   </div>
                 </Link>
               ))
             ) : (
-              <p className="home-items-empty">New products will show here as sellers publish them.</p>
+              <p className="home-items-empty">
+                New products will show here as sellers publish them.
+              </p>
             )}
           </div>
         </section>
@@ -170,11 +191,13 @@ function HomePage() {
         <section className="home-section home-section-news">
           <div className="home-section-header">
             <div className="home-section-heading">
-              <p className="home-section-label">Updates</p>
+              <p className="home-section-label">Farming Updates</p>
               <h2>
                 News
                 {previewNews.length > 0 && (
-                  <span className="home-section-count">{previewNews.length}+ news</span>
+                  <span className="home-section-count">
+                    {previewNews.length}+ news
+                  </span>
                 )}
               </h2>
             </div>
@@ -185,29 +208,37 @@ function HomePage() {
 
           <div className="home-items-grid">
             {previewNews.length > 0 ? (
-              previewNews.map((post) => (
-                <Link
-                  key={post._id || post.slug}
+              previewNews.map((article, index) => (
+                <a
+                  key={index}
                   className="home-item-card"
-                  to={`/articles/${post.slug || post._id}`}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <div className="home-item-media">
                     <img
                       className="home-item-image"
-                      src={post.imageUrl || FALLBACK_IMAGES.news}
-                      alt={post.title}
+                      src={article.urlToImage || FALLBACK_IMAGES.news}
+                      alt={article.title}
+                      onError={(e) => {
+                        e.target.src = FALLBACK_IMAGES.news;
+                      }}
                     />
                   </div>
                   <div className="home-item-body">
                     <p className="home-item-meta">
-                      {post.author?.username || "Author"}&nbsp;·&nbsp;{timeAgo(post.createdAt)}
+                      {article.source?.name || "News"}&nbsp;·&nbsp;
+                      {timeAgo(article.publishedAt)}
                     </p>
-                    <h3 className="home-item-title">{post.title}</h3>
+                    <h3 className="home-item-title">{article.title}</h3>
                   </div>
-                </Link>
+                </a>
               ))
             ) : (
-              <p className="home-items-empty">News highlights will be listed here soon.</p>
+              <p className="home-items-empty">
+                News highlights will be listed here soon.
+              </p>
             )}
           </div>
         </section>
