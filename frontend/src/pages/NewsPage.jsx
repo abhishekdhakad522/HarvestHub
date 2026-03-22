@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
-import { fetchFarmingNews } from "../lib/news";
+import { fetchFarmingNewsPage } from "../lib/news";
+
+const PAGE_SIZE = 12;
 
 const TOPICS = [
-  { id: "farming", label: "Farming" },
-  { id: "agriculture", label: "Agriculture" },
-  { id: "crops harvest", label: "Crops & Harvest" },
-  { id: "organic farming", label: "Organic" },
-  { id: "livestock", label: "Livestock" },
-  { id: "agricultural technology", label: "AgriTech" },
+  { id: "farming", label: "Farming", query: "farming" },
+  { id: "agriculture", label: "Agriculture", query: "agriculture" },
+  { id: "crops-harvest", label: "Crops & Harvest", query: "crops harvest" },
+  { id: "organic", label: "Organic", query: "organic farming" },
+  { id: "livestock", label: "Livestock", query: "livestock" },
+  { id: "agritech", label: "AgriTech", query: "agricultural technology" },
+  { id: "schemes", label: "Schemes", query: "farmers government schemes agriculture subsidy" },
 ];
 
 function formatDate(dateString) {
@@ -22,24 +25,69 @@ function formatDate(dateString) {
 function NewsPage() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [topic, setTopic] = useState("farming");
+  const [page, setPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+
+  const activeTopic = TOPICS.find((t) => t.id === topic) || TOPICS[0];
+  const canLoadMore = articles.length < totalResults;
 
   useEffect(() => {
     async function loadNews() {
-      setLoading(true);
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       setError(null);
+
       try {
-        const news = await fetchFarmingNews(topic, 12);
-        setArticles(news.filter((a) => a.title && a.title !== "[Removed]"));
+        const response = await fetchFarmingNewsPage(activeTopic.query, page, PAGE_SIZE);
+        const nextItems = response.articles.filter(
+          (a) => a.title && a.title !== "[Removed]",
+        );
+
+        setTotalResults(response.totalResults);
+        setArticles((currentItems) => {
+          if (page === 1) {
+            return nextItems;
+          }
+
+          const seen = new Set(currentItems.map((item) => item.url));
+          const uniqueNewItems = nextItems.filter((item) => !seen.has(item.url));
+          return [...currentItems, ...uniqueNewItems];
+        });
       } catch (err) {
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (page === 1) {
+          setLoading(false);
+        } else {
+          setLoadingMore(false);
+        }
       }
     }
+
     loadNews();
-  }, [topic]);
+  }, [activeTopic.query, page]);
+
+  const handleTopicChange = (nextTopic) => {
+    setTopic(nextTopic);
+    setPage(1);
+    setArticles([]);
+    setTotalResults(0);
+  };
+
+  const handleLoadMore = () => {
+    if (loadingMore || !canLoadMore) {
+      return;
+    }
+
+    setPage((currentValue) => currentValue + 1);
+  };
 
   return (
     <section className="news-page">
@@ -59,7 +107,7 @@ function NewsPage() {
           <button
             key={t.id}
             className={`news-category-button ${topic === t.id ? "active" : ""}`}
-            onClick={() => setTopic(t.id)}
+            onClick={() => handleTopicChange(t.id)}
           >
             {t.label}
           </button>
@@ -94,9 +142,10 @@ function NewsPage() {
       )}
 
       {!loading && !error && articles.length > 0 && (
-        <div className="news-grid">
-          {articles.map((article, index) => (
-            <article key={index} className="news-card">
+        <>
+          <div className="news-grid">
+            {articles.map((article, index) => (
+              <article key={`${article.url || article.title}-${index}`} className="news-card">
               <a
                 href={article.url}
                 target="_blank"
@@ -151,9 +200,23 @@ function NewsPage() {
                   </div>
                 </div>
               </a>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+
+          {canLoadMore ? (
+            <div className="news-load-more-wrap">
+              <button
+                type="button"
+                className="secondary-button news-load-more-button"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? "Loading more..." : "Load more news"}
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );

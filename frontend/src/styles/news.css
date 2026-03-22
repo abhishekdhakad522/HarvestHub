@@ -231,6 +231,17 @@
   font-weight: 700;
 }
 
+.news-load-more-wrap {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+.news-load-more-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 @media (max-width: 1024px) {
   .news-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
