@@ -63,9 +63,9 @@ export const registerUser = async (req, res) => {
 }
 
 export const loginUser = async (req, res) => {
-    const { email, password ,role} = req.body;
+    const { email, password } = req.body;
 
-    if(!email || !password || !role || email==='' || password==='' || role==='') {
+    if(!email || !password || email==='' || password==='') {
             return res.status(400).json({ message: "All fields are required" });
         }
     const user = await User.findOne({ email });
@@ -77,15 +77,6 @@ export const loginUser = async (req, res) => {
     if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid email or password" });
     }
-    // check if user role matches the requested role
-    if(role === 'farmer' &&  user.role !== role) {
-        return res.status(400).json({ message: "user is not a farmer" });
-    }
-    else if(role === 'buyer' &&  user.role !== role) {
-        return res.status(400).json({ message: "user is not a buyer" });
-    }
-
-
     const token = createAuthToken(user);
     res.cookie("token", token);
 
@@ -101,23 +92,44 @@ export const loginUser = async (req, res) => {
 }
 
 export const throughGoogle = async (req, res) => {
-    const { credential, role } = req.body;
+    const { credential, code, role } = req.body;
 
     try {
-        if (!credential || !role) {
-            return res.status(400).json({ message: "Google credential and role are required" });
-        }
-
-        if (!["farmer", "buyer"].includes(role)) {
-            return res.status(400).json({ message: "Invalid role selected" });
+        if (!credential && !code) {
+            return res.status(400).json({ message: "Google credential/code is required" });
         }
 
         if (!process.env.GOOGLE_CLIENT_ID) {
             return res.status(500).json({ message: "GOOGLE_CLIENT_ID is not configured" });
         }
 
+        let idToken = credential;
+
+        if (!idToken && code) {
+            if (!process.env.GOOGLE_CLIENT_SECRET) {
+                return res.status(500).json({ message: "GOOGLE_CLIENT_SECRET is not configured" });
+            }
+
+            const exchangeClient = new OAuth2Client(
+                process.env.GOOGLE_CLIENT_ID,
+                process.env.GOOGLE_CLIENT_SECRET,
+                process.env.GOOGLE_REDIRECT_URI || "postmessage"
+            );
+
+            const { tokens } = await exchangeClient.getToken({
+                code,
+                redirect_uri: process.env.GOOGLE_REDIRECT_URI || "postmessage",
+            });
+
+            idToken = tokens?.id_token;
+        }
+
+        if (!idToken) {
+            return res.status(400).json({ message: "Unable to verify Google account" });
+        }
+
         const ticket = await googleClient.verifyIdToken({
-            idToken: credential,
+            idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
@@ -144,6 +156,16 @@ export const throughGoogle = async (req, res) => {
                     message: "Google login successful",
                     user: userData,
                 }); 
+        }
+
+        if (!role) {
+            return res.status(400).json({
+                message: "This Google account is new. Please choose account type on Sign Up page.",
+            });
+        }
+
+        if (!["farmer", "buyer"].includes(role)) {
+            return res.status(400).json({ message: "Invalid role selected" });
         }
         
         // if user doesn't exist, create new user

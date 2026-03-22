@@ -219,6 +219,17 @@
   width: 100% !important;
 }
 
+.google-code-login-button {
+  width: 100%;
+  min-height: 42px;
+  font-weight: 700;
+}
+
+.google-code-login-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
 .form-status {
   margin: 2px 0 0;
   padding: 12px 14px;

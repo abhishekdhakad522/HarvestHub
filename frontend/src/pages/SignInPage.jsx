@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { fetchCurrentUser, loginUser, loginWithGoogle } from "../lib/auth.js";
 
 function SignInPage() {
@@ -8,7 +8,6 @@ function SignInPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "farmer",
   });
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,18 +59,17 @@ function SignInPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleCodeSuccess = async (codeResponse) => {
     try {
       setIsGoogleSubmitting(true);
       setStatus({ type: "idle", message: "" });
 
-      if (!credentialResponse?.credential) {
-        throw new Error("Google sign-in did not return a valid credential.");
+      if (!codeResponse?.code) {
+        throw new Error("Google sign-in did not return a valid authorization code.");
       }
 
       const response = await loginWithGoogle({
-        credential: credentialResponse.credential,
-        role: formData.role,
+        code: codeResponse.code,
       });
 
       window.dispatchEvent(new Event("harvesthub:authchange"));
@@ -95,6 +93,18 @@ function SignInPage() {
       type: "error",
       message: "Google sign-in was cancelled or failed.",
     });
+  };
+
+  const googleCodeLogin = useGoogleLogin({
+    flow: "auth-code",
+    scope: "openid email profile",
+    onSuccess: handleGoogleCodeSuccess,
+    onError: handleGoogleError,
+  });
+
+  const handleGoogleButtonClick = () => {
+    setStatus({ type: "idle", message: "" });
+    googleCodeLogin();
   };
 
   if (isCheckingAuth) {
@@ -146,19 +156,6 @@ function SignInPage() {
             />
           </label>
 
-          <label className="form-field">
-            <span>Account type</span>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="farmer">Farmer</option>
-              <option value="buyer">Buyer</option>
-            </select>
-          </label>
-
           <button
             type="submit"
             className="action-button auth-submit"
@@ -172,15 +169,14 @@ function SignInPage() {
           </div>
 
           <div className="google-login-wrap">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              useOneTap={false}
-              theme="outline"
-              text="signin_with"
-              shape="pill"
-              width="100%"
-            />
+            <button
+              type="button"
+              className="secondary-button google-code-login-button"
+              onClick={handleGoogleButtonClick}
+              disabled={isSubmitting || isGoogleSubmitting}
+            >
+              {isGoogleSubmitting ? "Connecting to Google..." : "Sign in with Google"}
+            </button>
           </div>
 
           {status.message ? (
