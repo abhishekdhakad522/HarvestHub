@@ -1,6 +1,7 @@
 import express from 'express';
 import { updateProfile, getUserProfile, deleteUserAccount, logoutUser, getAllUsers } from '../controllers/user.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
+import upload from '../middleware/upload.middleware.js';
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 router.get('/logout', verifyToken, logoutUser);
 router.get('/profile', verifyToken, getUserProfile);
 router.get('/all', verifyToken, getAllUsers);
-router.put('/update', verifyToken, updateProfile);
+router.put('/update', verifyToken, upload.single('profilePicture'), updateProfile);
 router.delete('/delete', verifyToken, deleteUserAccount);
 
 export default router;

@@ -55,12 +55,18 @@ export async function fetchCurrentUser() {
 }
 
 export function updateUserProfile(payload) {
+  const formData = new FormData();
+
+  if (payload.username) formData.append("username", payload.username);
+  if (payload.email) formData.append("email", payload.email);
+  if (payload.password) formData.append("password", payload.password);
+  if (payload.profilePictureFile) {
+    formData.append("profilePicture", payload.profilePictureFile);
+  }
+
   return sendAuthenticatedRequest("/api/user/update", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: formData,
   });
 }
 

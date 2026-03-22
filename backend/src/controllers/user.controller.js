@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import cloudinary from '../config/cloudinary.js';
 
 export const logoutUser = (req, res) => {
     res.clearCookie("token");
@@ -7,7 +8,7 @@ export const logoutUser = (req, res) => {
 }
 
 export const updateProfile = async (req, res) => {
-    const { username, email, password, profilePicture } = req.body;
+    const { username, email, password } = req.body;
     const userId = req.user.userId; // From JWT token (set by middleware)
 
     try {
@@ -42,7 +43,25 @@ export const updateProfile = async (req, res) => {
         // Update fields if provided
         if (username) user.username = username;
         if (email) user.email = email;
-        if (profilePicture) user.profilePicture = profilePicture;
+
+        if (req.file) {
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'harvesthub/profile-pictures',
+                        transformation: [{ quality: 'auto', fetch_format: 'auto' }]
+                    },
+                    (error, uploadResult) => {
+                        if (error) reject(error);
+                        else resolve(uploadResult);
+                    }
+                );
+
+                stream.end(req.file.buffer);
+            });
+
+            user.profilePicture = result.secure_url;
+        }
         
         // Hash new password if provided
         if (password && password.trim() !== '') {

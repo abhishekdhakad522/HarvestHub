@@ -11,6 +11,7 @@ function UpdateProfilePage() {
     username: "",
     email: "",
     profilePicture: "",
+    profilePictureFile: null,
     password: "",
   });
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ function UpdateProfilePage() {
         username: currentUser.username || "",
         email: currentUser.email || "",
         profilePicture: currentUser.profilePicture || "",
+        profilePictureFile: null,
         password: "",
       });
       setIsCheckingAccess(false);
@@ -44,6 +46,15 @@ function UpdateProfilePage() {
     }));
   };
 
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0] || null;
+
+    setFormData((currentValue) => ({
+      ...currentValue,
+      profilePictureFile: selectedFile,
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSaving(true);
@@ -53,7 +64,7 @@ function UpdateProfilePage() {
       const response = await updateUserProfile({
         username: formData.username,
         email: formData.email,
-        profilePicture: formData.profilePicture,
+        profilePictureFile: formData.profilePictureFile,
         ...(formData.password ? { password: formData.password } : {}),
       });
 
@@ -64,6 +75,7 @@ function UpdateProfilePage() {
         email: updatedUser?.email || currentValue.email,
         profilePicture:
           updatedUser?.profilePicture || currentValue.profilePicture,
+        profilePictureFile: null,
         password: "",
       }));
       setStatus({
@@ -146,14 +158,19 @@ function UpdateProfilePage() {
           </div>
 
           <label className="form-field">
-            <span>Profile picture URL</span>
+            <span>Profile picture</span>
             <input
-              type="url"
+              className="profile-file-input"
+              type="file"
               name="profilePicture"
-              value={formData.profilePicture}
-              onChange={handleChange}
-              placeholder="https://example.com/profile.jpg"
+              accept="image/*"
+              onChange={handleFileChange}
             />
+            <small className="profile-file-hint">
+              {formData.profilePictureFile
+                ? `Selected: ${formData.profilePictureFile.name}`
+                : "Use JPG, PNG, or WEBP (max 5MB)."}
+            </small>
           </label>
 
           <label className="form-field">
