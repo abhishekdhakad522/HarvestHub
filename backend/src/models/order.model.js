@@ -24,6 +24,11 @@ const orderItemSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    fulfillmentStatus: {
+        type: String,
+        enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
+        default: 'pending'
     }
 }, { _id: false });
 
@@ -32,6 +37,15 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    buyerName: {
+        type: String,
+        trim: true
+    },
+    buyerEmail: {
+        type: String,
+        trim: true,
+        lowercase: true
     },
     items: [orderItemSchema],
     shippingAddress: {

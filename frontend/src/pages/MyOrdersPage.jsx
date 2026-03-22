@@ -60,6 +60,20 @@ function MyOrdersPage() {
   const canCancelOrder = (orderStatus) =>
     ["pending", "confirmed"].includes(String(orderStatus || "").toLowerCase());
 
+  const getOrderNote = (orderStatus) => {
+    const normalizedStatus = String(orderStatus || "").toLowerCase();
+
+    if (normalizedStatus === "cancelled") {
+      return "This order has already been cancelled.";
+    }
+
+    if (!canCancelOrder(normalizedStatus)) {
+      return "Cancellation unavailable for this order status.";
+    }
+
+    return "";
+  };
+
   const handleCancelOrder = async (orderId) => {
     setActiveOrderId(orderId);
     setStatusMessage("");
@@ -132,6 +146,7 @@ function MyOrdersPage() {
                     0,
                   )
                 : 0;
+              const orderNote = getOrderNote(order.orderStatus);
 
               return (
                 <article className="order-card" key={order._id || order.id}>
@@ -207,11 +222,11 @@ function MyOrdersPage() {
                             ? "Cancelling..."
                             : "Cancel order"}
                         </button>
-                      ) : (
+                      ) : orderNote ? (
                         <p className="order-note">
-                          Cancellation unavailable for this order status.
+                          {orderNote}
                         </p>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </article>

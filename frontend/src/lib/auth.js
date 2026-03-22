@@ -46,6 +46,10 @@ export function loginUser(payload) {
   return sendAuthRequest("/api/auth/user/login", payload);
 }
 
+export function loginWithGoogle(payload) {
+  return sendAuthRequest("/api/auth/user/google", payload);
+}
+
 export async function fetchCurrentUser() {
   try {
     return await sendAuthenticatedRequest("/api/user/profile");

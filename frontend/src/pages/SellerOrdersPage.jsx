@@ -18,6 +18,22 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function getSellerStatus(order, sellerId) {
+  const sellerItems = Array.isArray(order?.items)
+    ? order.items.filter((item) => {
+        const itemSellerId =
+          typeof item.seller === "string" ? item.seller : item.seller?._id;
+        return String(itemSellerId || "") === String(sellerId || "");
+      })
+    : [];
+
+  if (!sellerItems.length) {
+    return "pending";
+  }
+
+  return String(sellerItems[0]?.fulfillmentStatus || "pending").toLowerCase();
+}
+
 function SellerOrdersPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -28,6 +44,9 @@ function SellerOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedStatuses, setSelectedStatuses] = useState({});
+  const [sellerId, setSellerId] = useState("");
+
+  const allowedUpdateStatuses = ["confirmed", "processing", "shipped", "delivered"];
 
   useEffect(() => {
     const loadSellerOrders = async () => {
@@ -47,6 +66,8 @@ function SellerOrdersPage() {
           return;
         }
 
+        setSellerId(currentUser._id || currentUser.id || "");
+
         const response = await getSellerOrders({ page: currentPage, limit: 10 });
         const nextOrders = Array.isArray(response?.orders) ? response.orders : [];
         setOrders(nextOrders);
@@ -55,7 +76,10 @@ function SellerOrdersPage() {
           nextOrders.reduce((statusMap, order) => {
             const orderId = order._id || order.id;
             if (orderId) {
-              statusMap[orderId] = String(order.orderStatus || "confirmed").toLowerCase();
+              const currentStatus = getSellerStatus(order, currentUser._id || currentUser.id);
+              statusMap[orderId] = allowedUpdateStatuses.includes(currentStatus)
+                ? currentStatus
+                : "confirmed";
             }
             return statusMap;
           }, {}),
@@ -85,8 +109,12 @@ function SellerOrdersPage() {
     }));
   };
 
-  const canUpdateOrder = (orderStatus) => {
-    const statusValue = String(orderStatus || "").toLowerCase();
+  const canUpdateOrder = (sellerStatus, overallStatus) => {
+    const statusValue = String(sellerStatus || "").toLowerCase();
+    const globalStatus = String(overallStatus || "").toLowerCase();
+    if (globalStatus === "cancelled") {
+      return false;
+    }
     return !["cancelled", "delivered"].includes(statusValue);
   };
 
@@ -108,7 +136,7 @@ function SellerOrdersPage() {
         );
         setSelectedStatuses((currentValue) => ({
           ...currentValue,
-          [updatedOrder._id]: String(updatedOrder.orderStatus || nextStatus).toLowerCase(),
+          [updatedOrder._id]: getSellerStatus(updatedOrder, sellerId),
         }));
       }
 
@@ -155,7 +183,13 @@ function SellerOrdersPage() {
           <div className="orders-list">
             {orders.map((order) => {
               const sellerItems = Array.isArray(order.items)
-                ? order.items.filter((item) => item.seller?._id)
+                ? order.items.filter((item) => {
+                    const itemSellerId =
+                      typeof item.seller === "string"
+                        ? item.seller
+                        : item.seller?._id;
+                    return String(itemSellerId || "") === String(sellerId || "");
+                  })
                 : [];
               const firstItem = sellerItems[0] || order.items?.[0];
               const firstImage = firstItem?.product?.images?.[0] || DEFAULT_PRODUCT_IMAGE;
@@ -168,6 +202,9 @@ function SellerOrdersPage() {
                   sum + Number(item.price || 0) * Math.max(Number(item.quantity || 0), 0),
                 0,
               );
+              const buyerLabel =
+                order.buyer?.username || order.buyerName || order.buyerEmail || "N/A";
+              const sellerStatus = getSellerStatus(order, sellerId);
 
               return (
                 <article className="order-card" key={order._id || order.id}>
@@ -187,14 +224,14 @@ function SellerOrdersPage() {
                     </div>
 
                     <p className="order-line">
-                      Buyer: {order.buyer?.username || "N/A"} • {totalItems} item
+                      Buyer: {buyerLabel} • {totalItems} item
                       {totalItems === 1 ? "" : "s"}
                     </p>
 
                     <div className="order-stats-grid">
                       <p>
-                        <span>Order status</span>
-                        <strong>{order.orderStatus || "pending"}</strong>
+                        <span>Your status</span>
+                        <strong>{sellerStatus}</strong>
                       </p>
                       <p>
                         <span>Payment</span>
@@ -218,7 +255,7 @@ function SellerOrdersPage() {
                         View details
                       </Link>
 
-                      {canUpdateOrder(order.orderStatus) ? (
+                      {canUpdateOrder(sellerStatus, order.orderStatus) ? (
                         <>
                           <label className="order-status-selector">
                             <span>Status</span>

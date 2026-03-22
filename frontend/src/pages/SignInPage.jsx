@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../lib/auth.js";
+import { GoogleLogin } from "@react-oauth/google";
+import { fetchCurrentUser, loginUser, loginWithGoogle } from "../lib/auth.js";
 
 function SignInPage() {
   const navigate = useNavigate();
@@ -11,6 +12,23 @@ function SignInPage() {
   });
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const currentUser = await fetchCurrentUser();
+
+      if (currentUser) {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      setIsCheckingAuth(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -41,6 +59,53 @@ function SignInPage() {
       setIsSubmitting(false);
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setIsGoogleSubmitting(true);
+      setStatus({ type: "idle", message: "" });
+
+      if (!credentialResponse?.credential) {
+        throw new Error("Google sign-in did not return a valid credential.");
+      }
+
+      const response = await loginWithGoogle({
+        credential: credentialResponse.credential,
+        role: formData.role,
+      });
+
+      window.dispatchEvent(new Event("harvesthub:authchange"));
+      setStatus({
+        type: "success",
+        message: response.message || "Signed in with Google.",
+      });
+      navigate("/");
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Google sign-in failed.",
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setStatus({
+      type: "error",
+      message: "Google sign-in was cancelled or failed.",
+    });
+  };
+
+  if (isCheckingAuth) {
+    return (
+      <section className="auth-layout">
+        <div className="auth-card">
+          <p className="orders-status">Checking your session...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="auth-layout">
@@ -97,10 +162,26 @@ function SignInPage() {
           <button
             type="submit"
             className="action-button auth-submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isGoogleSubmitting}
           >
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
+
+          <div className="auth-divider" aria-hidden="true">
+            <span>or</span>
+          </div>
+
+          <div className="google-login-wrap">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              useOneTap={false}
+              theme="outline"
+              text="signin_with"
+              shape="pill"
+              width="100%"
+            />
+          </div>
 
           {status.message ? (
             <p className={`form-status form-status-${status.type}`}>
