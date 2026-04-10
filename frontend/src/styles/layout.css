@@ -1,9 +1,14 @@
 .app-shell {
   min-height: 100vh;
-  padding: 32px;
+  --app-shell-x: 32px;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 32px 0;
 }
 
 .page-shell {
+  flex: 1;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
 }

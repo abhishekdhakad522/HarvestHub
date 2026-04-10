@@ -21,6 +21,7 @@ import MyOrdersPage from "./pages/MyOrdersPage.jsx";
 import OrderDetailPage from "./pages/OrderDetailPage.jsx";
 import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
 import EditPostPage from "./pages/EditPostPage.jsx";
+import Footer from "./components/Footer.jsx";
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

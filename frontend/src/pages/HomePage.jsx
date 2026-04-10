@@ -5,11 +5,9 @@ import { getProducts } from "../lib/products.js";
 import { fetchFarmingNews } from "../lib/news.js";
 
 const FALLBACK_IMAGES = {
-  article:
-    "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?auto=format&fit=crop&w=800&q=80",
-  product:
-    "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80",
-  news: "https://images.unsplash.com/photo-1593113598332-cd59a93f7e2e?auto=format&fit=crop&w=800&q=80",
+  article: "/default-article.svg",
+  product: "/default-product.svg",
+  news: "/default-news.svg",
 };
 
 function timeAgo(dateStr) {
@@ -24,7 +22,7 @@ function HomePage() {
   const [previewProducts, setPreviewProducts] = useState([]);
   const [previewArticles, setPreviewArticles] = useState([]);
   const [previewNews, setPreviewNews] = useState([]);
-
+  
   useEffect(() => {
     const loadPreviews = async () => {
       try {

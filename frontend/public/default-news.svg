@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Default news image">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef3fb" />
+      <stop offset="100%" stop-color="#dde7f6" />
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#bg2)" />
+  <rect x="110" y="86" width="740" height="368" rx="24" fill="#ffffff" opacity="0.94" />
+
+  <rect x="160" y="138" width="180" height="30" rx="8" fill="#5b7eb8" />
+  <rect x="360" y="138" width="120" height="30" rx="8" fill="#8fa9cf" />
+
+  <rect x="160" y="196" width="640" height="24" rx="9" fill="#b5c7e2" />
+  <rect x="160" y="236" width="600" height="24" rx="9" fill="#c4d2e8" />
+  <rect x="160" y="276" width="500" height="24" rx="9" fill="#d3ddef" />
+
+  <rect x="160" y="334" width="220" height="56" rx="12" fill="#4f71ab" />
+  <polygon points="708,322 776,358 708,394" fill="#8ea8ce" />
+</svg>

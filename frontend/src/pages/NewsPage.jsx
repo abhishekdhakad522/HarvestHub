@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchFarmingNews } from "../lib/news";
 
-const TOPICS = [
-  { id: "farming", label: "Farming" },
-  { id: "agriculture", label: "Agriculture" },
-  { id: "crops harvest", label: "Crops & Harvest" },
-  { id: "organic farming", label: "Organic" },
-  { id: "livestock", label: "Livestock" },
-  { id: "agricultural technology", label: "AgriTech" },
-];
+
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -23,15 +16,14 @@ function NewsPage() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [topic, setTopic] = useState("farming");
 
   useEffect(() => {
     async function loadNews() {
       setLoading(true);
       setError(null);
       try {
-        const news = await fetchFarmingNews(topic, 12);
-        setArticles(news.filter((a) => a.title && a.title !== "[Removed]"));
+        const news = await fetchFarmingNews("farming", 12);
+        setArticles(news);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -39,7 +31,7 @@ function NewsPage() {
       }
     }
     loadNews();
-  }, [topic]);
+  }, []);
 
   return (
     <section className="news-page">
@@ -54,36 +46,11 @@ function NewsPage() {
         </div>
       </div>
 
-      <div className="news-categories">
-        {TOPICS.map((t) => (
-          <button
-            key={t.id}
-            className={`news-category-button ${topic === t.id ? "active" : ""}`}
-            onClick={() => setTopic(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       {loading && <p className="news-status">Loading news...</p>}
 
       {error && (
         <div className="news-api-notice">
-          <p>
-            <strong>API Key Required:</strong> To display news, add your NewsAPI
-            key to the environment variables as <code>VITE_NEWS_API_KEY</code>.
-          </p>
-          <p>
-            Get a free API key at{" "}
-            <a
-              href="https://newsapi.org/register"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              newsapi.org
-            </a>
-          </p>
+           <h1>Error fetching newsData.</h1>
         </div>
       )}
 
@@ -98,14 +65,14 @@ function NewsPage() {
           {articles.map((article, index) => (
             <article key={index} className="news-card">
               <a
-                href={article.url}
+                href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="news-card-link"
               >
-                {article.urlToImage ? (
+                {article.image_url ? (
                   <img
-                    src={article.urlToImage}
+                    src={article.image_url}
                     alt={article.title}
                     className="news-image"
                     onError={(e) => {
@@ -116,26 +83,25 @@ function NewsPage() {
                 ) : null}
                 <div
                   className="news-image-placeholder"
-                  style={{ display: article.urlToImage ? "none" : "flex" }}
+                  style={{ display: article.image_url ? "none" : "flex" }}
                 >
                   📰
                 </div>
                 <div className="news-content">
                   <div className="news-meta-row">
                     <span className="news-source">
-                      {article.source?.name || "Unknown"}
+                      {article.source_name || "Unknown"}
                     </span>
                     <span className="news-date">
-                      {formatDate(article.publishedAt)}
+                      {formatDate(article.pubDate)}
                     </span>
                   </div>
                   <h2>{article.title}</h2>
-                  {article.description && (
-                    <p className="news-excerpt">{article.description}</p>
-                  )}
+                  <p className="news-excerpt">{article.description}</p>
+                
                   <div className="news-footer">
                     <span className="news-author">
-                      {article.author || "Unknown Author"}
+                      {article.creator?.length>0? article.creator[0] : "Unknown Author"}
                     </span>
                     <span className="news-read-more">
                       Read more
