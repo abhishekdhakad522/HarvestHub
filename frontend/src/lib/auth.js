@@ -46,6 +46,10 @@ export function loginUser(payload) {
   return sendAuthRequest("/api/auth/user/login", payload);
 }
 
+export function loginWithGoogle(payload) {
+  return sendAuthRequest("/api/auth/user/google", payload);
+}
+
 export async function fetchCurrentUser() {
   try {
     return await sendAuthenticatedRequest("/api/user/profile");
@@ -55,12 +59,18 @@ export async function fetchCurrentUser() {
 }
 
 export function updateUserProfile(payload) {
+  const formData = new FormData();
+
+  if (payload.username) formData.append("username", payload.username);
+  if (payload.email) formData.append("email", payload.email);
+  if (payload.password) formData.append("password", payload.password);
+  if (payload.profilePictureFile) {
+    formData.append("profilePicture", payload.profilePictureFile);
+  }
+
   return sendAuthenticatedRequest("/api/user/update", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    body: formData,
   });
 }
 

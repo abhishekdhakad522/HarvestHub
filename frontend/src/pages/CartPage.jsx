@@ -399,7 +399,7 @@ function CartPage() {
 
               <button
                 type="submit"
-                className="primary-button cart-order-button"
+                className="action-button cart-order-button"
                 disabled={isPlacingOrder}
               >
                 {isPlacingOrder ? "Placing order..." : "Place order"}

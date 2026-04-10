@@ -186,6 +186,50 @@
   cursor: wait;
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px 0 2px;
+  color: #5d7464;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(22, 55, 40, 0.14);
+}
+
+.auth-divider span {
+  margin: 0 12px;
+}
+
+.google-login-wrap {
+  width: 100%;
+  min-height: 40px;
+}
+
+.google-login-wrap > div {
+  width: 100% !important;
+}
+
+.google-code-login-button {
+  width: 100%;
+  min-height: 42px;
+  font-weight: 700;
+}
+
+.google-code-login-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
 .form-status {
   margin: 2px 0 0;
   padding: 12px 14px;

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../lib/auth.js";
+import { useGoogleLogin } from "@react-oauth/google";
+import { fetchCurrentUser, loginWithGoogle, registerUser } from "../lib/auth.js";
 
 function SignUpPage() {
   const navigate = useNavigate();
@@ -8,10 +9,27 @@ function SignUpPage() {
     username: "",
     email: "",
     password: "",
-    role: "farmer",
+    role: "",
   });
   const [status, setStatus] = useState({ type: "idle", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const currentUser = await fetchCurrentUser();
+
+      if (currentUser) {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      setIsCheckingAuth(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -42,6 +60,77 @@ function SignUpPage() {
       setIsSubmitting(false);
     }
   };
+
+  const handleGoogleCodeSuccess = async (codeResponse) => {
+    try {
+      setIsGoogleSubmitting(true);
+      setStatus({ type: "idle", message: "" });
+
+      if (!formData.role) {
+        throw new Error("Please select account type before using Google sign up.");
+      }
+
+      if (!codeResponse?.code) {
+        throw new Error("Google sign-up did not return a valid authorization code.");
+      }
+
+      const response = await loginWithGoogle({
+        code: codeResponse.code,
+        role: formData.role,
+      });
+
+      window.dispatchEvent(new Event("harvesthub:authchange"));
+      setStatus({
+        type: "success",
+        message: response.message || "Signed up with Google.",
+      });
+      navigate("/");
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Google sign-up failed.",
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setStatus({
+      type: "error",
+      message: "Google sign-up was cancelled or failed.",
+    });
+  };
+
+  const googleCodeSignup = useGoogleLogin({
+    flow: "auth-code",
+    scope: "openid email profile",
+    onSuccess: handleGoogleCodeSuccess,
+    onError: handleGoogleError,
+  });
+
+  const handleGoogleButtonClick = () => {
+    if (!formData.role) {
+      setStatus({
+        type: "error",
+        message: "Please select account type first.",
+      });
+      return;
+    }
+
+    setStatus({ type: "idle", message: "" });
+    googleCodeSignup();
+  };
+
+  if (isCheckingAuth) {
+    return (
+      <section className="auth-layout">
+        <div className="auth-card">
+          <p className="orders-status">Checking your session...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="auth-layout">
@@ -102,6 +191,9 @@ function SignUpPage() {
               onChange={handleChange}
               required
             >
+              <option value="" disabled>
+                Select account type
+              </option>
               <option value="farmer">Farmer</option>
               <option value="buyer">Buyer</option>
             </select>
@@ -110,10 +202,25 @@ function SignUpPage() {
           <button
             type="submit"
             className="action-button auth-submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isGoogleSubmitting}
           >
             {isSubmitting ? "Creating account..." : "Create account"}
           </button>
+
+          <div className="auth-divider" aria-hidden="true">
+            <span>or</span>
+          </div>
+
+          <div className="google-login-wrap">
+            <button
+              type="button"
+              className="secondary-button google-code-login-button"
+              onClick={handleGoogleButtonClick}
+              disabled={isSubmitting || isGoogleSubmitting}
+            >
+              {isGoogleSubmitting ? "Connecting to Google..." : "Sign up with Google"}
+            </button>
+          </div>
 
           {status.message ? (
             <p className={`form-status form-status-${status.type}`}>

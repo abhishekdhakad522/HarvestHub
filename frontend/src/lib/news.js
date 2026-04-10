@@ -3,7 +3,7 @@ import axios from "axios";
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 const url= import.meta.env.VITE_NEWS_URL;
 
-export async function fetchFarmingNews(topic = "farming", pageSize = 12) {
+async function fetchNewsPage(topic = "farming", page = 1, pageSize = 12) {
   if (!NEWS_API_KEY) {
     throw new Error("News API key is not configured");
   }
@@ -16,3 +16,4 @@ export async function fetchFarmingNews(topic = "farming", pageSize = 12) {
   }
   return [];
 }
+export { fetchNewsPage };

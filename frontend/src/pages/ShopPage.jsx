@@ -51,7 +51,7 @@ function ShopPage() {
           nextProducts.reduce((quantityMap, product) => {
             const productId = product._id || product.id;
             if (productId) {
-              quantityMap[productId] = 1;
+              quantityMap[productId] = "1";
             }
             return quantityMap;
           }, {}),
@@ -84,20 +84,46 @@ function ShopPage() {
     syncCartCount();
   }, [user]);
 
-  const handleQuantityChange = (productId, nextQuantity, maxQuantity) => {
-    const parsedQuantity = Number.parseInt(nextQuantity, 10);
-
-    if (Number.isNaN(parsedQuantity)) {
+  const handleQuantityChange = (productId, nextQuantity) => {
+    if (nextQuantity === "") {
       setSelectedQuantities((current) => ({
         ...current,
-        [productId]: 1,
+        [productId]: "",
       }));
+      return;
+    }
+
+    if (!/^\d+$/.test(nextQuantity)) {
       return;
     }
 
     setSelectedQuantities((current) => ({
       ...current,
-      [productId]: Math.min(Math.max(parsedQuantity, 1), maxQuantity),
+      [productId]: nextQuantity,
+    }));
+  };
+
+  const handleQuantityBlur = (productId, maxQuantity) => {
+    const parsedQuantity = Number.parseInt(selectedQuantities[productId], 10);
+
+    setSelectedQuantities((current) => ({
+      ...current,
+      [productId]: String(
+        Number.isNaN(parsedQuantity)
+          ? 1
+          : Math.min(Math.max(parsedQuantity, 1), maxQuantity),
+      ),
+    }));
+  };
+
+  const handleQuantityStep = (productId, step, maxQuantity) => {
+    const currentQuantity = Number.parseInt(selectedQuantities[productId], 10);
+    const safeCurrent = Number.isNaN(currentQuantity) ? 1 : currentQuantity;
+    const nextQuantity = Math.min(Math.max(safeCurrent + step, 1), maxQuantity);
+
+    setSelectedQuantities((current) => ({
+      ...current,
+      [productId]: String(nextQuantity),
     }));
   };
 
@@ -274,20 +300,57 @@ function ShopPage() {
                             <>
                               <label className="product-quantity-selector">
                                 <span>Quantity</span>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max={Math.max(availableQuantity, 1)}
-                                  value={selectedQuantities[productId] ?? 1}
-                                  onChange={(event) =>
-                                    handleQuantityChange(
-                                      productId,
-                                      event.target.value,
-                                      Math.max(availableQuantity, 1),
-                                    )
-                                  }
-                                  disabled={availableQuantity < 1}
-                                />
+                                <div className="product-quantity-stepper">
+                                  <button
+                                    type="button"
+                                    className="product-quantity-step"
+                                    onClick={() =>
+                                      handleQuantityStep(
+                                        productId,
+                                        -1,
+                                        Math.max(availableQuantity, 1),
+                                      )
+                                    }
+                                    disabled={availableQuantity < 1}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={selectedQuantities[productId] ?? "1"}
+                                    onChange={(event) =>
+                                      handleQuantityChange(
+                                        productId,
+                                        event.target.value,
+                                      )
+                                    }
+                                    onBlur={() =>
+                                      handleQuantityBlur(
+                                        productId,
+                                        Math.max(availableQuantity, 1),
+                                      )
+                                    }
+                                    disabled={availableQuantity < 1}
+                                    aria-label="Quantity"
+                                  />
+                                  <button
+                                    type="button"
+                                    className="product-quantity-step"
+                                    onClick={() =>
+                                      handleQuantityStep(
+                                        productId,
+                                        1,
+                                        Math.max(availableQuantity, 1),
+                                      )
+                                    }
+                                    disabled={availableQuantity < 1}
+                                    aria-label="Increase quantity"
+                                  >
+                                    +
+                                  </button>
+                                </div>
                               </label>
                               <button
                                 type="button"

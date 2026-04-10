@@ -103,11 +103,34 @@
 
 .cart-order-button {
   width: fit-content;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1c6a47 0%, #1f7a52 100%);
+  color: #f9fff7;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 22px rgba(21, 76, 51, 0.22);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.cart-order-button:hover,
+.cart-order-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(21, 76, 51, 0.28);
+  filter: saturate(1.04);
 }
 
 .cart-order-button:disabled {
-  opacity: 0.7;
+  opacity: 0.75;
   cursor: wait;
+  transform: none;
+  box-shadow: none;
 }
 
 .cart-item {

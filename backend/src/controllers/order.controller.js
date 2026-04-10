@@ -1,6 +1,47 @@
 import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
+import User from "../models/user.model.js";
+
+const STATUS_RANK = {
+  pending: 0,
+  confirmed: 1,
+  processing: 2,
+  shipped: 3,
+  delivered: 4,
+};
+
+const deriveOverallOrderStatus = (items = []) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    return "pending";
+  }
+
+  const statuses = items.map((item) =>
+    String(item.fulfillmentStatus || "pending").toLowerCase(),
+  );
+
+  if (statuses.every((status) => status === "cancelled")) {
+    return "cancelled";
+  }
+
+  const activeStatuses = statuses.filter((status) => status !== "cancelled");
+  if (activeStatuses.length === 0) {
+    return "cancelled";
+  }
+
+  if (activeStatuses.every((status) => status === "delivered")) {
+    return "delivered";
+  }
+
+  const minRank = Math.min(
+    ...activeStatuses.map((status) => STATUS_RANK[status] ?? STATUS_RANK.pending),
+  );
+
+  return (
+    Object.keys(STATUS_RANK).find((status) => STATUS_RANK[status] === minRank) ||
+    "pending"
+  );
+};
 
 export const createOrder = async (req, res) => {
   const { shippingAddress, paymentMethod, orderNotes } = req.body;
@@ -27,6 +68,8 @@ export const createOrder = async (req, res) => {
 
     // Get user's cart
     const cart = await Cart.findOne({ user: buyer }).populate("items.product");
+
+    const buyerUser = await User.findById(buyer).select("username email");
 
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
@@ -64,6 +107,7 @@ export const createOrder = async (req, res) => {
         quantity: cartItem.quantity,
         price: cartItem.price,
         seller: product.seller,
+        fulfillmentStatus: "pending",
       });
 
       totalAmount += cartItem.price * cartItem.quantity;
@@ -76,6 +120,8 @@ export const createOrder = async (req, res) => {
     // Create order
     const newOrder = new Order({
       buyer,
+      buyerName: buyerUser?.username,
+      buyerEmail: buyerUser?.email,
       items: orderItems,
       shippingAddress,
       paymentMethod,
@@ -214,6 +260,7 @@ export const getSellerOrders = async (req, res) => {
     const orders = await Order.find(query)
       .populate("buyer", "username email profilePicture")
       .populate("items.product", "name images")
+      .populate("items.seller", "username")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -260,16 +307,28 @@ export const updateOrderStatus = async (req, res) => {
         .json({ message: "You are not authorized to update this order" });
     }
 
+    if (["cancelled", "delivered"].includes(String(order.orderStatus || "").toLowerCase())) {
+      return res.status(400).json({ message: "Order status cannot be changed anymore" });
+    }
+
     // Validate status
+    const normalizedStatus = String(orderStatus || "").toLowerCase().trim();
     const validStatuses = ["confirmed", "processing", "shipped", "delivered"];
-    if (!validStatuses.includes(orderStatus)) {
+    if (!validStatuses.includes(normalizedStatus)) {
       return res.status(400).json({ message: "Invalid order status" });
     }
 
-    // Update order status
-    order.orderStatus = orderStatus;
+    // Update only the current seller's order items.
+    order.items.forEach((item) => {
+      if (item.seller.toString() === userId) {
+        item.fulfillmentStatus = normalizedStatus;
+      }
+    });
 
-    if (orderStatus === "delivered") {
+    // Derive global order status from all seller item statuses.
+    order.orderStatus = deriveOverallOrderStatus(order.items);
+
+    if (order.orderStatus === "delivered") {
       order.deliveredAt = new Date();
       order.paymentStatus = "paid";
     }
@@ -322,6 +381,9 @@ export const cancelOrder = async (req, res) => {
 
     // Update order
     order.orderStatus = "cancelled";
+    order.items.forEach((item) => {
+      item.fulfillmentStatus = "cancelled";
+    });
     order.cancelledAt = new Date();
     order.paymentStatus =
       order.paymentStatus === "paid" ? "refunded" : "pending";

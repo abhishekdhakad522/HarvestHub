@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchFarmingNews } from "../lib/news";
-
-
+import { fetchNewsPage } from "../lib/news";
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -20,9 +18,8 @@ function NewsPage() {
   useEffect(() => {
     async function loadNews() {
       setLoading(true);
-      setError(null);
       try {
-        const news = await fetchFarmingNews("farming", 12);
+        const news = await fetchNewsPage("farming", 12);
         setArticles(news);
       } catch (err) {
         setError(err.message);
@@ -61,9 +58,10 @@ function NewsPage() {
       )}
 
       {!loading && !error && articles.length > 0 && (
-        <div className="news-grid">
-          {articles.map((article, index) => (
-            <article key={index} className="news-card">
+        <>
+          <div className="news-grid">
+            {articles.map((article, index) => (
+              <article key={`${article.url || article.title}-${index}`} className="news-card">
               <a
                 href={article.link}
                 target="_blank"
@@ -117,9 +115,10 @@ function NewsPage() {
                   </div>
                 </div>
               </a>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </section>
   );

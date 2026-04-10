@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPublishedPosts } from "../lib/posts.js";
 import { getProducts } from "../lib/products.js";
-import { fetchFarmingNews } from "../lib/news.js";
+import { fetchNewsPage } from "../lib/news.js";
 
 const FALLBACK_IMAGES = {
   article: "/default-article.svg",
@@ -30,7 +30,7 @@ function HomePage() {
           await Promise.all([
             getProducts(),
             getPublishedPosts(),
-            fetchFarmingNews("farming", 3).catch(() => []),
+            fetchNewsPage("farming", 3).catch(() => []),
           ]);
 
         const products = Array.isArray(productsResponse?.products)
