@@ -1,6 +1,8 @@
 import express from 'express';
 import {
     createOrder,
+    createRazorpayOrder,
+    verifyRazorpayPayment,
     getMyOrders,
     getOrderById,
     getSellerOrders,
@@ -13,6 +15,8 @@ const router = express.Router();
 
 // All routes require authentication
 router.post('/create', verifyToken, createOrder);
+router.post('/create-razorpay-order', verifyToken, createRazorpayOrder);
+router.post('/verify-razorpay-payment', verifyToken, verifyRazorpayPayment);
 router.get('/my-orders', verifyToken, getMyOrders);
 router.get('/seller-orders', verifyToken, getSellerOrders);
 router.get('/:id', verifyToken, getOrderById);

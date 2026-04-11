@@ -7,10 +7,35 @@ import {
   removeFromCart,
   updateCartItem,
 } from "../lib/cart.js";
-import { createOrder } from "../lib/orders.js";
+import {
+  createOrder,
+  createRazorpayOrder,
+  verifyRazorpayPayment,
+} from "../lib/orders.js";
 import { fetchCurrentUser } from "../lib/auth.js";
 
 const DEFAULT_PRODUCT_IMAGE = "/default-product.svg";
+const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_SCRIPT_SRC}"]`,
+    );
+
+    if (existingScript) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = RAZORPAY_SCRIPT_SRC;
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 function mapCartState(response) {
   return {
@@ -138,22 +163,94 @@ function CartPage() {
     setStatusMessage("");
 
     try {
-      const response = await createOrder({
-        shippingAddress: {
-          fullName: orderForm.fullName,
-          phoneNumber: orderForm.phoneNumber,
-          address: orderForm.address,
-          city: orderForm.city,
-          state: orderForm.state,
-          zipCode: orderForm.zipCode,
-        },
-        paymentMethod: orderForm.paymentMethod,
-        orderNotes: orderForm.orderNotes,
-      });
+      const shippingAddress = {
+        fullName: orderForm.fullName,
+        phoneNumber: orderForm.phoneNumber,
+        address: orderForm.address,
+        city: orderForm.city,
+        state: orderForm.state,
+        zipCode: orderForm.zipCode,
+      };
 
-      setStatusMessage(
-        `Order placed successfully. Payable amount: ₹${Number(response?.order?.finalAmount || 0).toFixed(2)} (Order ID: ${response?.order?._id || "N/A"})`,
-      );
+      if (orderForm.paymentMethod === "razorpay") {
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          throw new Error("Unable to load Razorpay checkout right now.");
+        }
+
+        const razorpayResponse = await createRazorpayOrder({
+          shippingAddress,
+          paymentMethod: "razorpay",
+          orderNotes: orderForm.orderNotes,
+        });
+
+        const localOrderId = razorpayResponse?.order?._id;
+        const razorpayOrder = razorpayResponse?.razorpayOrder;
+        const razorpayKeyId =
+          razorpayResponse?.razorpayKeyId ||
+          import.meta.env.VITE_RAZORPAY_KEY_ID ||
+          "";
+
+        if (!localOrderId || !razorpayOrder?.id || !razorpayKeyId) {
+          throw new Error("Razorpay order details are incomplete.");
+        }
+
+        await new Promise((resolve, reject) => {
+          const razorpayOptions = {
+            key: razorpayKeyId,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            name: "HarvestHub",
+            description: "Order payment",
+            order_id: razorpayOrder.id,
+            prefill: {
+              name: orderForm.fullName,
+              email: user?.email || "",
+              contact: orderForm.phoneNumber,
+            },
+            notes: {
+              localOrderId,
+            },
+            theme: {
+              color: "#1c5c40",
+            },
+            handler: async (paymentResult) => {
+              try {
+                await verifyRazorpayPayment({
+                  orderId: localOrderId,
+                  razorpayOrderId: paymentResult.razorpay_order_id,
+                  razorpayPaymentId: paymentResult.razorpay_payment_id,
+                  razorpaySignature: paymentResult.razorpay_signature,
+                });
+                resolve();
+              } catch (verificationError) {
+                reject(verificationError);
+              }
+            },
+            modal: {
+              ondismiss: () => reject(new Error("Payment cancelled by user.")),
+            },
+          };
+
+          const razorpayCheckout = new window.Razorpay(razorpayOptions);
+          razorpayCheckout.open();
+        });
+
+        setStatusMessage(
+          `Payment successful. Order ID: ${localOrderId}.`,
+        );
+      } else {
+        const response = await createOrder({
+          shippingAddress,
+          paymentMethod: orderForm.paymentMethod,
+          orderNotes: orderForm.orderNotes,
+        });
+
+        setStatusMessage(
+          `Order placed successfully. Payable amount: ₹${Number(response?.order?.finalAmount || 0).toFixed(2)} (Order ID: ${response?.order?._id || "N/A"})`,
+        );
+      }
+
       setOrderForm({
         fullName: "",
         phoneNumber: "",
@@ -380,9 +477,7 @@ function CartPage() {
                     required
                   >
                     <option value="cash-on-delivery">Cash on delivery</option>
-                    <option value="upi">UPI</option>
-                    <option value="card">Card</option>
-                    <option value="net-banking">Net banking</option>
+                    <option value="razorpay">Razorpay (test)</option>
                   </select>
                 </label>
               </div>

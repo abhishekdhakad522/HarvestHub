@@ -26,6 +26,20 @@ export function createOrder(payload) {
   });
 }
 
+export function createRazorpayOrder(payload) {
+  return sendOrderRequest("/api/orders/create-razorpay-order", {
+    method: "POST",
+    payload,
+  });
+}
+
+export function verifyRazorpayPayment(payload) {
+  return sendOrderRequest("/api/orders/verify-razorpay-payment", {
+    method: "POST",
+    payload,
+  });
+}
+
 export function getMyOrders({ page = 1, limit = 10 } = {}) {
   return sendOrderRequest(`/api/orders/my-orders?page=${page}&limit=${limit}`);
 }

@@ -2,6 +2,8 @@ import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 import User from "../models/user.model.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 const STATUS_RANK = {
   pending: 0,
@@ -43,6 +45,91 @@ const deriveOverallOrderStatus = (items = []) => {
   );
 };
 
+let razorpayClient = null;
+
+const getRazorpayClient = () => {
+  if (razorpayClient) {
+    return razorpayClient;
+  }
+
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    return null;
+  }
+
+  razorpayClient = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+
+  return razorpayClient;
+};
+
+const computeOrderFromCart = async (buyer) => {
+  const cart = await Cart.findOne({ user: buyer }).populate("items.product");
+  const buyerUser = await User.findById(buyer).select("username email");
+
+  if (!cart || cart.items.length === 0) {
+    throw new Error("Cart is empty");
+  }
+
+  const orderItems = [];
+  let totalAmount = 0;
+
+  for (const cartItem of cart.items) {
+    const product = await Product.findById(cartItem.product._id);
+
+    if (!product) {
+      throw new Error(`Product ${cartItem.product.name} not found`);
+    }
+
+    if (product.status !== "available") {
+      throw new Error(`Product ${product.name} is not available`);
+    }
+
+    if (product.quantity < cartItem.quantity) {
+      throw new Error(
+        `Insufficient quantity for ${product.name}. Available: ${product.quantity}`,
+      );
+    }
+
+    orderItems.push({
+      product: product._id,
+      name: product.name,
+      quantity: cartItem.quantity,
+      price: cartItem.price,
+      seller: product.seller,
+      fulfillmentStatus: "pending",
+    });
+
+    totalAmount += cartItem.price * cartItem.quantity;
+  }
+
+  const shippingCost = totalAmount > 1000 ? 0 : 50;
+  const finalAmount = totalAmount + shippingCost;
+
+  return {
+    cart,
+    buyerUser,
+    orderItems,
+    totalAmount,
+    shippingCost,
+    finalAmount,
+  };
+};
+
+const reserveInventoryAndClearCart = async (orderItems, cart) => {
+  for (const item of orderItems) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { quantity: -item.quantity },
+    });
+  }
+
+  cart.items = [];
+  cart.totalPrice = 0;
+  cart.totalItems = 0;
+  await cart.save();
+};
+
 export const createOrder = async (req, res) => {
   const { shippingAddress, paymentMethod, orderNotes } = req.body;
   const buyer = req.user.userId;
@@ -66,56 +153,14 @@ export const createOrder = async (req, res) => {
         .json({ message: "Shipping address and payment method are required" });
     }
 
-    // Get user's cart
-    const cart = await Cart.findOne({ user: buyer }).populate("items.product");
-
-    const buyerUser = await User.findById(buyer).select("username email");
-
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
-    }
-
-    // Verify product availability and prepare order items
-    const orderItems = [];
-    let totalAmount = 0;
-
-    for (const cartItem of cart.items) {
-      const product = await Product.findById(cartItem.product._id);
-
-      if (!product) {
-        return res
-          .status(404)
-          .json({ message: `Product ${cartItem.product.name} not found` });
-      }
-
-      if (product.status !== "available") {
-        return res
-          .status(400)
-          .json({ message: `Product ${product.name} is not available` });
-      }
-
-      if (product.quantity < cartItem.quantity) {
-        return res.status(400).json({
-          message: `Insufficient quantity for ${product.name}. Available: ${product.quantity}`,
-        });
-      }
-
-      // Add to order items
-      orderItems.push({
-        product: product._id,
-        name: product.name,
-        quantity: cartItem.quantity,
-        price: cartItem.price,
-        seller: product.seller,
-        fulfillmentStatus: "pending",
-      });
-
-      totalAmount += cartItem.price * cartItem.quantity;
-    }
-
-    // Calculate shipping (you can customize this)
-    const shippingCost = totalAmount > 1000 ? 0 : 50; // Free shipping above 1000
-    const finalAmount = totalAmount + shippingCost;
+    const {
+      cart,
+      buyerUser,
+      orderItems,
+      totalAmount,
+      shippingCost,
+      finalAmount,
+    } = await computeOrderFromCart(buyer);
 
     // Create order
     const newOrder = new Order({
@@ -135,18 +180,7 @@ export const createOrder = async (req, res) => {
 
     await newOrder.save();
 
-    // Update product quantities
-    for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { quantity: -item.quantity },
-      });
-    }
-
-    // Clear the cart
-    cart.items = [];
-    cart.totalPrice = 0;
-    cart.totalItems = 0;
-    await cart.save();
+    await reserveInventoryAndClearCart(orderItems, cart);
 
     // Populate order details
     await newOrder.populate("buyer", "username email");
@@ -161,6 +195,170 @@ export const createOrder = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error creating order", error: error.message });
+  }
+};
+
+export const createRazorpayOrder = async (req, res) => {
+  const { shippingAddress, paymentMethod, orderNotes } = req.body;
+  const buyer = req.user.userId;
+  const userRole = req.user.role;
+
+  try {
+    if (userRole !== "buyer") {
+      return res.status(403).json({
+        message: "Only buyers can place orders. Farmers cannot order products.",
+      });
+    }
+
+    if (!shippingAddress || paymentMethod !== "razorpay") {
+      return res.status(400).json({
+        message: "Shipping address is required and payment method must be razorpay.",
+      });
+    }
+
+    const razorpay = getRazorpayClient();
+
+    if (!razorpay || !process.env.RAZORPAY_KEY_ID) {
+      return res.status(500).json({
+        message: "Razorpay is not configured on the server.",
+      });
+    }
+
+    const {
+      cart,
+      buyerUser,
+      orderItems,
+      totalAmount,
+      shippingCost,
+      finalAmount,
+    } = await computeOrderFromCart(buyer);
+
+    const newOrder = new Order({
+      buyer,
+      buyerName: buyerUser?.username,
+      buyerEmail: buyerUser?.email,
+      items: orderItems,
+      shippingAddress,
+      paymentMethod: "razorpay",
+      paymentStatus: "pending",
+      totalAmount,
+      shippingCost,
+      finalAmount,
+      orderNotes,
+    });
+
+    const amountInPaise = Math.round(finalAmount * 100);
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amountInPaise,
+      currency: "INR",
+      receipt: `order_${newOrder._id.toString().slice(-12)}`,
+      notes: {
+        localOrderId: newOrder._id.toString(),
+      },
+    });
+
+    newOrder.paymentDetails = {
+      razorpayOrderId: razorpayOrder.id,
+    };
+
+    await newOrder.save();
+    await reserveInventoryAndClearCart(orderItems, cart);
+
+    await newOrder.populate("buyer", "username email");
+    await newOrder.populate("items.product", "name images");
+    await newOrder.populate("items.seller", "username");
+
+    return res.status(201).json({
+      message: "Razorpay order created successfully",
+      order: newOrder,
+      razorpayOrder: {
+        id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+      },
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+    });
+  } catch (error) {
+    const message =
+      error?.error?.description || error.message || "Error creating Razorpay order";
+
+    const isValidationError = [
+      "Cart is empty",
+      "not found",
+      "not available",
+      "Insufficient quantity",
+    ].some((text) => message.includes(text));
+
+    const statusCode = isValidationError
+      ? 400
+      : error?.statusCode && Number.isInteger(error.statusCode)
+        ? error.statusCode
+        : 500;
+
+    return res.status(statusCode).json({ message });
+  }
+};
+
+export const verifyRazorpayPayment = async (req, res) => {
+  const {
+    orderId,
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    if (!orderId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+      return res.status(400).json({ message: "Missing payment verification fields" });
+    }
+
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ message: "Razorpay secret is not configured." });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.buyer.toString() !== userId) {
+      return res.status(403).json({ message: "You are not authorized to verify this order" });
+    }
+
+    if (order.paymentDetails?.razorpayOrderId !== razorpayOrderId) {
+      return res.status(400).json({ message: "Razorpay order ID mismatch" });
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .digest("hex");
+
+    if (expectedSignature !== razorpaySignature) {
+      order.paymentStatus = "failed";
+      await order.save();
+      return res.status(400).json({ message: "Invalid Razorpay signature" });
+    }
+
+    order.paymentStatus = "paid";
+    order.paymentDetails = {
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+    };
+    await order.save();
+
+    return res.status(200).json({
+      message: "Payment verified successfully",
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error verifying Razorpay payment",
+      error: error.message,
+    });
   }
 };
 

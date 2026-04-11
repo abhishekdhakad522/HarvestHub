@@ -82,7 +82,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['cash-on-delivery', 'card', 'upi', 'net-banking'],
+        enum: ['cash-on-delivery', 'card', 'upi', 'net-banking', 'razorpay'],
         required: true
     },
     paymentStatus: {
@@ -113,6 +113,20 @@ const orderSchema = new mongoose.Schema({
     orderNotes: {
         type: String,
         maxlength: 500
+    },
+    paymentDetails: {
+        razorpayOrderId: {
+            type: String,
+            trim: true
+        },
+        razorpayPaymentId: {
+            type: String,
+            trim: true
+        },
+        razorpaySignature: {
+            type: String,
+            trim: true
+        }
     },
     deliveredAt: {
         type: Date
