@@ -1,11 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
         <span className="site-footer-copy">
-          © 2023{" "}
+          © 2026{" "}
           <a
             href="/"
             className="site-footer-link"
@@ -18,9 +19,9 @@ export default function Footer() {
         </span>
         <ul className="site-footer-links" aria-label="Footer navigation">
           <li className="site-footer-item">
-            <a href="/about" className="site-footer-link">
+            <Link to="/about" className="site-footer-link">
               About
-            </a>
+            </Link>
           </li>
           <li className="site-footer-item">
             <a href="#" className="site-footer-link">
@@ -33,9 +34,9 @@ export default function Footer() {
             </a>
           </li>
           <li className="site-footer-item">
-            <a href="#" className="site-footer-link">
+            <Link to="/contact" className="site-footer-link">
               Contact
-            </a>
+            </Link>
           </li>
         </ul>
       </div>

@@ -52,7 +52,7 @@ export function loginWithGoogle(payload) {
 
 export async function fetchCurrentUser() {
   try {
-    return await sendAuthenticatedRequest("/api/user/profile");
+    return await sendAuthenticatedRequest("/api/user/profile/optional");
   } catch {
     return null;
   }

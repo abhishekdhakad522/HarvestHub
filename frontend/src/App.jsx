@@ -9,6 +9,7 @@ import NewsPage from "./pages/NewsPage.jsx";
 import ArticlesPage from "./pages/ArticlesPage.jsx";
 import ArticleDetailPage from "./pages/ArticleDetailPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
+import ContactPage from "./pages/ContactPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import UpdateProfilePage from "./pages/UpdateProfilePage.jsx";
 import AddProductPage from "./pages/AddProductPage.jsx";
@@ -40,6 +41,7 @@ function App() {
           <Route path="/articles/:slug" element={<ArticleDetailPage />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/update" element={<UpdateProfilePage />} />
           <Route path="/products/new" element={<AddProductPage />} />

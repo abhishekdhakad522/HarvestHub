@@ -100,6 +100,24 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+export const getCurrentUserOptional = async (req, res) => {
+    if (!req.user?.userId) {
+        return res.status(200).json(null);
+    }
+
+    try {
+        const user = await User.findById(req.user.userId).select("-password");
+
+        if (!user) {
+            return res.status(200).json(null);
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching profile", error: error.message });
+    }
+};
+
 export const deleteUserAccount = async (req, res) => {
     const userId = req.user.userId; // From JWT token
 
