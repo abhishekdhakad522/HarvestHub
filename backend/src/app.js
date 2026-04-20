@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
 import authRoutes from './routes/auth.routes.js';
@@ -12,6 +13,25 @@ import uploadRoutes from './routes/upload.routes.js';
     
 const app = express();
 
+const getAllowedOrigins = () =>
+	(process.env.ALLOWED_ORIGINS || '')
+		.split(',')
+		.map((origin) => origin.trim())
+		.filter(Boolean);
+
+app.use(cors({
+	origin(origin, callback) {
+		const allowedOrigins = getAllowedOrigins();
+
+		// Allow non-browser requests (like curl/Postman) that don't send Origin
+		if (!origin || allowedOrigins.includes(origin)) {
+			callback(null, true);
+			return;
+		}
+		callback(new Error('Not allowed by CORS'));
+	},
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
