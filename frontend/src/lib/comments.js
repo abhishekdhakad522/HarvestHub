@@ -1,9 +1,12 @@
+import { getAuthHeaders } from "./token.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function sendCommentRequest(path, options = {}) {
+  const headers = getAuthHeaders(options.headers || {});
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
     ...options,
+    headers,
   });
 
   const responseBody = await response.json().catch(() => ({}));

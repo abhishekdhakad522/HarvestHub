@@ -1,7 +1,17 @@
 import jwt from "jsonwebtoken";
 
+const extractToken = (req) => {
+    const authHeader = req.headers.authorization || "";
+
+    if (authHeader.startsWith("Bearer ")) {
+        return authHeader.slice(7);
+    }
+
+    return req.cookies?.token;
+};
+
 export const verifyToken = (req, res, next) => {
-    const token = req.cookies.token;
+    const token = extractToken(req);
 
     if (!token) {
         return res.status(401).json({ message: "Access denied. No token provided." });
@@ -17,7 +27,7 @@ export const verifyToken = (req, res, next) => {
 };
 
 export const optionalVerifyToken = (req, res, next) => {
-    const token = req.cookies.token;
+    const token = extractToken(req);
 
     if (!token) {
         return next();

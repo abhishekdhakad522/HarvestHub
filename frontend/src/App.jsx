@@ -22,6 +22,7 @@ import MyOrdersPage from "./pages/MyOrdersPage.jsx";
 import OrderDetailPage from "./pages/OrderDetailPage.jsx";
 import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
 import EditPostPage from "./pages/EditPostPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 import Footer from "./components/Footer.jsx";
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
           <Route path="/seller-orders" element={<SellerOrdersPage />} />
           <Route path="/my-orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       <Footer />

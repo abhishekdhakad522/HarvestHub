@@ -1,3 +1,10 @@
+import {
+  clearAuthToken,
+  getAuthHeaders,
+  getAuthToken,
+  setAuthToken,
+} from "./token.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function sendAuthRequest(path, payload) {
@@ -6,25 +13,32 @@ async function sendAuthRequest(path, payload) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(payload),
   });
 
   const responseBody = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+    }
     throw new Error(
       responseBody.message || "Request failed. Please try again.",
     );
+  }
+
+  if (responseBody?.token) {
+    setAuthToken(responseBody.token);
   }
 
   return responseBody;
 }
 
 async function sendAuthenticatedRequest(path, options = {}) {
+  const headers = getAuthHeaders(options.headers || {});
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
     ...options,
+    headers,
   });
 
   const responseBody = await response.json().catch(() => ({}));
@@ -52,6 +66,9 @@ export function loginWithGoogle(payload) {
 
 export async function fetchCurrentUser() {
   try {
+    if (!getAuthToken()) {
+      return null;
+    }
     return await sendAuthenticatedRequest("/api/user/profile/optional");
   } catch {
     return null;
@@ -74,6 +91,10 @@ export function updateUserProfile(payload) {
   });
 }
 
-export function logoutUser() {
-  return sendAuthenticatedRequest("/api/user/logout");
+export async function logoutUser() {
+  try {
+    return await sendAuthenticatedRequest("/api/user/logout");
+  } finally {
+    clearAuthToken();
+  }
 }

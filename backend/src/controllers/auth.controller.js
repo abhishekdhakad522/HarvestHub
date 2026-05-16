@@ -49,9 +49,9 @@ export const registerUser = async (req, res) => {
     await user.save();
 
     const token = createAuthToken(user);
-    res.cookie("token", token);
 
     res.status(201).json({ message: "User registered successfully" ,
+        token,
         user: {
             id: user._id,
             username: user.username,
@@ -78,9 +78,9 @@ export const loginUser = async (req, res) => {
         return res.status(400).json({ message: "Invalid email or password" });
     }
     const token = createAuthToken(user);
-    res.cookie("token", token);
 
     res.status(200).json({ message: "User logged in successfully" ,
+        token,
         user: {
             id: user._id,
             username: user.username,
@@ -151,9 +151,9 @@ export const throughGoogle = async (req, res) => {
             const { password, ...userData } = existingUser._doc;
             return res
                 .status(200)
-                .cookie("token", token, { httpOnly: true })
                 .json({
                     message: "Google login successful",
+                    token,
                     user: userData,
                 }); 
         }
@@ -195,9 +195,9 @@ export const throughGoogle = async (req, res) => {
         const { password, ...userData } = newUser._doc;
         return res
             .status(201)
-            .cookie("token", token, { httpOnly: true })
             .json({
                 message: "Google account created and logged in",
+                token,
                 user: userData,
             });
             

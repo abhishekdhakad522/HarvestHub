@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import cloudinary from '../config/cloudinary.js';
 
 export const logoutUser = (req, res) => {
-    res.clearCookie("token");
     res.status(200).json({ message: "User logged out successfully" });
 }
 
@@ -127,7 +126,6 @@ export const deleteUserAccount = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.clearCookie("token");
         res.status(200).json({ message: "Account deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting account", error: error.message });

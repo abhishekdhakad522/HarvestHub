@@ -1,12 +1,13 @@
+import { getAuthHeaders } from "./token.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function sendCartRequest(path, { method = "GET", payload } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
-    credentials: "include",
+    }),
     ...(payload ? { body: JSON.stringify(payload) } : {}),
   });
 

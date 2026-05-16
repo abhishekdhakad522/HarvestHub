@@ -1,14 +1,19 @@
+import { getAuthHeaders } from "./token.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function sendProductRequest(path, { method = "GET", payload, formData } = {}) {
   const isFormData = formData instanceof FormData;
+  const headers = getAuthHeaders(
+    isFormData ? {} : payload ? { "Content-Type": "application/json" } : {},
+  );
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    credentials: "include",
+    headers,
     ...(isFormData
       ? { body: formData } // browser sets Content-Type with boundary automatically
       : payload
-      ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+      ? { body: JSON.stringify(payload) }
       : {}),
   });
 

@@ -15,7 +15,7 @@ function Navbar() {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Sync user state from backend using JWT cookie
+  // Sync user state from backend using stored JWT token
   useEffect(() => {
     const sync = async () => {
       const currentUser = await fetchCurrentUser();
